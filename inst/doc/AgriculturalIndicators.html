@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Agricultural Indicators</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h2>Agricultural Indicators</h2>
+
+<h2>Introduction</h2>
+
+<p>Apart from forecasts of Essential Climate Variables, Climate Services also provide a variety of the sectoral indicators that are often required for Climate Services people, including researchers, decision-makers, farmers, etc.</p>
+
+<p>In the MEDGOLD project, 10 indicators which were identified as critical indices for the three agricultural sectors - grape/wine, olive/olive oil and wheat/pasta - have been considered in this CSIndicators package.</p>
+
+<p>The computing functions and the corresponding indicators are listed as follows:</p>
+
+<ol>
+<li><strong>PeriodAccumulation -</strong> Spring Total Precipitation (SprR) and Harvest Total Precipitation (HarvestR) </li>
+<li><strong>PeriodMean -</strong> Growing Season Temperature (GST) and Spring Mean Temperature Maximum (SPRTX) </li>
+<li><strong>TotalTimeExceedingThreshold -</strong> Number of Heat Stress Days - 35°C (SU35), 36°C (SU36), 40°C (SU40) and Spring Heat Stress Days - 32°C (Spr32)</li>
+<li><strong>AccumulationExceedingThreshold -</strong> Growing Degree Days (GDD)</li>
+<li><strong>TotalSpellTimeExceedingThreshold -</strong> Warm Spell Duration Index (WSDI)</li>
+</ol>
+
+<p>The above functions can take both multidimensional arrays and the s2dv<em>cube objects (see note below). Taking PeriodAccumulation as example, **CST</em>**PeriodAccumulation handles the latter and PeriodAccumulation without the prefix can compute multidimensional arrays.</p>
+
+<p><em>Note: s2dv_cube and array classes can be handled by the functions in CSIndicators. See Section 2 in vignette <a href="https://cran.r-project.org/package=CSTools/vignettes/Data_Considerations.html">Data retrieval and storage</a> from CSTools package for more information.</em></p>
+
+<p>There are some supplementary functions which must be called to smoothly run the above functions.</p>
+
+<ol>
+<li><strong>SelectPeriodOnData -</strong> to select the data in the requested period</li>
+<li><strong>SelectPeriodOnDates -</strong> to select the time dimension in the requested period</li>
+<li><strong>Threshold -</strong> to convert absolute value/variable to its percentile, e.g., Warm Spell Duration Index uses the 90th percentile corresponding to each day instead of a fixed threshold. See how this function is applied in Section 5. </li>
+</ol>
+
+<p>When the period selection is required, the <code>start</code> and <code>end</code> parameters have to be provided to cut out the portion in <code>time_dim</code>. Otherwise, the function will take the <strong>entire</strong> <code>time_dim</code>.</p>
+
+<p>The examples of computing the aforementioned indicators are given by functions as follows.</p>
+
+<h3>1. PeriodAccumulation</h3>
+
+<p><code>PeriodAccumulation</code> (and <code>CST_PeriodAccumulation</code>) computes the sum of a given variable in a period.</p>
+
+<p>Here, two indicators are used to show how this function works: Spring Total Precipitation (SprR) and Harvest Total Precipitation (HarvestR). Both indices represent the total precipitation but in different periods, 21st April - 21st June for SprR and 21st August - 21st October for HarvestR.</p>
+
+<p>First, load the required libraries, CSIndicators, CSTools, etc by running</p>
+
+<pre><code>library(CSIndicators)
+library(CSTools)
+library(zeallot)
+library(s2dv)
+</code></pre>
+
+<p>To obtain the precipitation forecast and observation, we load the daily precipitation (<strong>prlr</strong> given in <code>var</code>) data sets of ECMWF SEAS5 seasonal forecast and ERA5 reanalysis for the four starting dates 20130401-20160401 (provided in <code>sdates</code>) with the entire 7-month forecast time, April-October (214 days in total given in parameter <code>leadtimemax</code>).</p>
+
+<p>The pathways of SEAS5 and ERA5 are given in the lists with some <strong>whitecards (inside two dollar signs)</strong> used to replace the variable name and iterative items such as year and month. See details of requirements in Section 4 in vignette <a href="https://cran.r-project.org/package=CSTools/vignettes/Data_Considerations.html">Data retrieval and storage</a> from CSTools package.</p>
+
+<p>The spatial domain covers part of Douro Valley of Northern Portugal lon=[352.25, 353], lat=[41, 41.75]. These four values are provided in <code>lonmin</code>, <code>lonmax</code>, <code>latmin</code> and <code>latmax</code>.</p>
+
+<p>With <code>grid</code> set to <strong>r1440x721</strong>, the SEAS5 forecast would be interpolated to the 0.25-degree ERA5 grid by using the <strong>bicubic</strong> method given in <code>method</code>.</p>
+
+<pre><code>S5path_prlr &lt;- list(path = &#39;/esarchive/exp/ecmwf/system5c3s/original_files/chou/daily_mean/$VAR_NAME$_s0-24h/$VAR_NAME$_$YEAR$$MONTH$01.nc&#39;)
+
+path_ERA5prlr_CDS &lt;- list(path = &#39;/esarchive/recon/ecmwf/era5/daily_mean/$VAR_NAME$_f1h-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc&#39;)
+
+sdates &lt;- paste0(2013:2016, &#39;04&#39;, &#39;01&#39;)
+
+c(prlr_exp, prlr_obs) %&lt;-% CST_Load(var = &#39;prlr&#39;, 
+                                    exp = list(S5path_prlr), 
+                                    obs = list(path_ERA5prlr_CDS), 
+                                    sdates = sdates, 
+                                    lonmax = 353, lonmin = 352.25,
+                                    latmax = 41.75, latmin = 41, 
+                                    storefreq = &#39;daily&#39;, 
+                                    leadtimemin = 1, leadtimemax = 214, 
+                                    nmember = 3, output = &quot;lonlat&quot;, 
+                                    grid = &quot;r1440x721&quot;, method = &#39;bicubic&#39;)
+</code></pre>
+
+<p>The output contains data and metadata for the experiment and the observations. The elements <code>prlr_exp$data</code> and <code>prlr_obs$data</code> have dimensions:</p>
+
+<pre><code>dim(prlr_exp$data)
+#dataset  member   sdate   ftime     lat     lon
+#      1       3       4     214       4       4
+dim(prlr_obs$data)
+#dataset  member   sdate   ftime     lat     lon
+#      1       1       4     214       4       4
+</code></pre>
+
+<p>To compute <strong>SprR</strong> of forecast and observation, we can run:</p>
+
+<pre><code>SprR_exp &lt;- CST_PeriodAccumulation(prlr_exp, start = list(21, 4), end = list(21, 6))
+SprR_obs &lt;- CST_PeriodAccumulation(prlr_obs, start = list(21, 4), end = list(21, 6))
+</code></pre>
+
+<p>The <code>start</code> and <code>end</code> are the initial and final dates and the day must be given before the month as above. They will be applied along the dimension <code>time_dim</code> (it is set to &#39;ftime&#39; by default).</p>
+
+<p>As mentioned, these parameters are optional, the function will take the entire timeseries when the period is not specified in <code>start</code> and <code>end</code>.</p>
+
+<p>The dimensions of SprR forecasts and observations are:</p>
+
+<pre><code>dim(SprR_exp$data)
+#dataset  member   sdate     lat     lon
+#      1       3       4       4       4
+dim(SprR_obs$data)
+#dataset  member   sdate     lat     lon 
+#      1       1       4       4       4 
+</code></pre>
+
+<p>The forecast SprR for the 1st member from 2013-2016 of the 1st grid point in mm are:</p>
+
+<pre><code>SprR_exp$data[1,1,,1,1] * 86400 * 1000
+#[1]  93.23205 230.41904 194.01412 226.52614
+</code></pre>
+
+<p>Dry springs will delay vegetative growth and reduce vigour and leaf area total surface. Fungal disease pressure will be lower and therefore there will be less need for protective and / or curative treatments, translating as less costs. Wet springs will promote higher vigour, increase the risk of fungal disease and disrupt vineyard operations as it may prevent machinery from getting in the vineyard due to mud. They are usually associated with higher costs.</p>
+
+<p>On the other hand, another moisture-related indicators, <strong>HarvestR</strong>, can be computed by using <code>PeriodAccumulation</code> as well, with the defined period as the following lines.</p>
+
+<pre><code>HarvestR_exp &lt;- CST_PeriodAccumulation(prlr_exp, start = list(21, 8), end = list(21, 10))
+HarvestR_obs &lt;- CST_PeriodAccumulation(prlr_obs, start = list(21, 8), end = list(21, 10))
+</code></pre>
+
+<p>The forecast HarvestR for the 1st member from 2013-2016 of the 1st grid point in mm are:</p>
+
+<pre><code>HarvestR_exp$data[1,1,,1,1] * 86400 * 1000
+#[1]  52.30026  42.88068 156.87961  32.18579
+</code></pre>
+
+<p>To compute the 2013-2016 ensemble-mean bias of forecast HarvestR, run</p>
+
+<pre><code>fcst &lt;- drop(HarvestR_exp$data) * 86400 * 1000
+obs &lt;- drop(HarvestR_obs$data) * 86400 * 1000
+
+Bias &lt;- MeanDims((fcst - InsertDim(obs, 1, dim(fcst)[&#39;member&#39;])), &#39;member&#39;)
+</code></pre>
+
+<p>To plot the map of ensemble-mean bias of HarvestR forecast, run</p>
+
+<pre><code>cols &lt;- c(&#39;#b2182b&#39;, &#39;#d6604d&#39;, &#39;#f4a582&#39;, &#39;#fddbc7&#39;, &#39;#d1e5f0&#39;, 
+          &#39;#92c5de&#39;, &#39;#4393c3&#39;, &#39;#2166ac&#39;)
+
+PlotEquiMap(Bias[1,,], lon = prlr_obs$lon, lat = prlr_obs$lat,
+            intylat = 1, intxlon = 1, width = 6, height = 6, 
+            filled.continents = FALSE, units = &#39;mm&#39;, title_scale = .8,
+            axes_label_scale = 1, axes_tick_scale = 1, col_inf = cols[1], 
+            margin_scale = c(1, 1, 1, 1), cols = cols[2:7], col_sup = cols[8], 
+            brks = seq(-60, 60, 20), colNA = &#39;white&#39;, 
+            toptitle = &#39;Ensemble-mean bias of HarvestR in 2013&#39;,
+            bar_label_scale = 1.5, bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+</code></pre>
+
+<p>You will see the following maps of HarvestR bias in 2013.</p>
+
+<p><img src="vignettes/figures/HarvestR_Bias_2013-1.png" width="30%"/></p>
+
+<p>In 2013, the ensemble-mean SEAS5 seasonal forecast of HarvestR is underestimated by up to 60 mm over Douro Valley region (the central four grid points). </p>
+
+<h3>2. PeriodMean</h3>
+
+<p>For the function <code>PeriodMean</code>, we use Growing Season Temperature (<strong>GST</strong>) as an example. GST is defined as the average of daily average temperatures between April 1st to October 31st in the Northern Hemisphere. It provides information onto which are the best suited varieties for a given site or, inversely, which are the best places to grow a specific variety. For existing vineyards, GST also informs on the suitability of its varieties for the climate of specific years, explaining quality and production variation. Many grapevine varieties across the world have been characterized in function of their GST optimum.</p>
+
+<p>Firstly, we prepare a sample data of daily mean temperature of SEAS5 and ERA5 data sets with the same starting dates, spatial domain, interpolation grid and method by running</p>
+
+<pre><code>S5path &lt;- list(path = &#39;/esarchive/exp/ecmwf/system5c3s/daily_mean/$VAR_NAME$_f6h/$VAR_NAME$_$YEAR$$MONTH$01.nc&#39;)
+ERA5path &lt;- list(path = &#39;/esarchive/recon/ecmwf/era5/daily_mean/$VAR_NAME$_f1h-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc&#39;)
+
+c(tas_exp, tas_obs) %&lt;-% CST_Load(var = &#39;tas&#39;, exp = list(S5path), obs = list(ERA5path),
+                                  sdates = sdates, lonmax = 353, lonmin = 352.25,
+                                  latmax = 41.75, latmin = 41,
+                                  storefreq = &#39;daily&#39;,
+                                  leadtimemin = 1, leadtimemax = 214,
+                                  nmember = 3, output = &quot;lonlat&quot;,
+                                  grid = &quot;r1440x721&quot;, method = &#39;bicubic&#39;)
+</code></pre>
+
+<p>The output contains observations <code>tas_dv$obs$data</code> and forecast <code>tas_dv$exp$data</code>, and their dimensions and summaries are like</p>
+
+<pre><code>dim(tas_obs$data)
+#dataset  member   sdate   ftime     lat     lon 
+#      1       1       4     214       4       4 
+
+dim(tas_exp$data)
+#dataset  member   sdate   ftime     lat     lon 
+#      1       3       4     214       4       4 
+
+summary(tas_obs$data - 273.15)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 3.63   14.38   17.89   17.65   21.24   30.21 
+
+summary(tas_exp$data - 273.15)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.54   11.65   16.56   16.50   21.25   31.41 
+
+</code></pre>
+
+<p>To compute the GST for both observation and forecast, run the following lines</p>
+
+<pre><code># change the unit of temperature from °C to K
+
+tas_exp$data &lt;- tas_exp$data - 273.15
+tas_obs$data &lt;- tas_obs$data - 273.15
+
+# compute GST
+
+GST_exp &lt;- CST_PeriodMean(tas_exp, start = list(1, 4), end = list(31, 10))
+GST_obs &lt;- CST_PeriodMean(tas_obs, start = list(1, 4), end = list(31, 10))
+
+</code></pre>
+
+<p>Since the period considered for GST is the entire period for starting month of April, in this case the <code>start</code> and <code>end</code> parameters could be ignored.</p>
+
+<p>The summaries and dimensions of the output are as follows:</p>
+
+<pre><code>summary(GST_exp$data)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 14.23   15.78   16.50   16.50   17.17   18.70 
+
+summary(GST_obs$data)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 15.34   16.85   17.72   17.65   18.41   19.60 
+
+dim(GST_exp$data)
+#dataset  member   sdate     lat     lon 
+#      1       3       4       4       4 
+
+dim(GST_obs$data)
+#dataset  member   sdate     lat     lon 
+#      1       1       4       4       4 
+</code></pre>
+
+<p>Here, we plot the 2013-2016 mean climatology of ERA5 GST by running </p>
+
+<pre><code># compute ERA5 GST climatology
+GST_Clim &lt;- MeanDims(drop(GST_obs$data), &#39;sdate&#39;)
+
+cols &lt;- c(&#39;#ffffd4&#39;,&#39;#fee391&#39;,&#39;#fec44f&#39;,&#39;#fe9929&#39;,&#39;#ec7014&#39;,&#39;#cc4c02&#39;,&#39;#8c2d04&#39;)
+PlotEquiMap(GST_Clim, lon = tas_obs$lon, lat = tas_obs$lat,
+            intylat = 1, intxlon = 1, width = 6, height = 6, 
+            filled.continents = FALSE, units = &#39;°C&#39;, title_scale = .8,
+            axes_label_scale = 1, axes_tick_scale = 1, col_inf = cols[1],
+            margin_scale = c(1, 1, 1, 1), cols = cols[2:6], col_sup = cols[7], 
+            brks = seq(16, 18.5, 0.5), colNA = &#39;white&#39;, bar_label_scale = 1.5,
+            toptitle = &#39;2013-2016 mean ERA5 GST&#39;,
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+</code></pre>
+
+<p>The ERA5 GST climatology is shown as below.</p>
+
+<p><img src="vignettes/figures/GST_ERA5_Climatology-1.png" width="30%"/></p>
+
+<p>ERA5 GST ranges from 17-18.5°C over the Douro Valley region for the period from 2013-2016 as shown in the figure.</p>
+
+<h3>3. TotalTimeExceedingThreshold</h3>
+
+<p>For the function <code>TotalTimeExceedingThreshold</code>, <strong>SU35</strong> (Number of Heat Stress Days - 35°C) is taken as an example here. 35°C is the average established threshold for photosynthesis to occur in the grapevine. Above this temperature, the plant closes its stomata. If this situation occurs after veraison, maturation will be arrested for as long as the situation holds, decreasing sugar, polyphenol and aroma precursor levels, all essential for grape and wine quality. The higher the index, the lower will be the berry quality and aptitude to produce quality grapes.</p>
+
+<p>SU35 is defined as the Total count of days when daily maximum temperatures exceed 35°C in the seven months into the future. There are three indicators sharing the similar definition as SU35: SU36, SU40 and Spr32. Their definition are listed as follows.</p>
+
+<ol>
+<li><strong>SU36</strong>: Total count of days when daily maximum temperatures exceed 36°C between June 21st and September 21st </li>
+<li><strong>SU40</strong>: Total count of days when daily maximum temperatures exceed 40°C between June 21st and September 21st<br/></li>
+<li><strong>Spr32</strong>: Total count of days when daily maximum temperatures exceed 32°C between April 21st and June 21st</li>
+</ol>
+
+<p>These indicators can be computed as well by using the function <code>TotalTimeExceedingThreshold</code> with different thresholds and periods indicated. </p>
+
+<p>Here, we take SU35 as example, therefore the daily temperature maximum of the entire 7-month forecast period is needed for the computation of this indicator.</p>
+
+<p>Load SEAS5 and ERA5 daily temperature maximum by running</p>
+
+<pre><code>S5path &lt;- list(path = &#39;/esarchive/exp/ecmwf/system5c3s/daily/$VAR_NAME$/$VAR_NAME$_$YEAR$$MONTH$01.nc&#39;)
+ERA5path &lt;- list(path = &#39;/esarchive/recon/ecmwf/era5/daily/$VAR_NAME$-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc&#39;)
+
+c(tasmax_exp, tasmax_obs) %&lt;-% CST_Load(var = &#39;tasmax&#39;, exp = list(S5path),
+                                        obs = list(ERA5path), sdates = sdates,
+                                        lonmax = 353, lonmin = 352.25,
+                                        latmax = 41.75, latmin = 41, storefreq = &#39;daily&#39;,
+                                        leadtimemin = 1, leadtimemax = 214, nmember = 3,
+                                        output = &quot;lonlat&quot;, grid = &quot;r1440x721&quot;, 
+                                        method = &#39;bicubic&#39;, nprocs = 1)
+</code></pre>
+
+<p>Check the unit of temperature to from °C to K for the comparison with the threshold defined (for example 35°C here). </p>
+
+<pre><code>tasmax_exp$data &lt;- tasmax_exp$data - 273.15
+tasmax_obs$data &lt;- tasmax_obs$data - 273.15
+</code></pre>
+
+<p>Computing SU35 for forecast and observation by running</p>
+
+<pre><code>threshold &lt;- 35
+SU35_exp &lt;- CST_TotalTimeExceedingThreshold(tasmax_exp, threshold = threshold,
+                                            start = list(1, 4), end = list(31, 10))
+SU35_obs &lt;- CST_TotalTimeExceedingThreshold(tasmax_obs, threshold = threshold,
+                                            start = list(1, 4), end = list(31, 10))
+</code></pre>
+
+<p>The summaries of SU35 forecasts and observations are given below.</p>
+
+<pre><code>summary(SU35_exp$data)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.00    2.00    5.00    7.12   12.00   26.00 
+
+summary(SU35_obs$data)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.000   0.000   1.000   2.609   5.000  10.000 
+
+</code></pre>
+
+<p>As shown in the summaries, SEAS5 SU35 forecasts are overestimated by 5 days in terms of mean value.</p>
+
+<p>Therefore, <code>CST_BiasCorrection</code> is used to bias adjust the SU35 forecasts.</p>
+
+<pre><code>res &lt;- CST_BiasCorrection(obs = SU35_obs, exp = SU35_exp)
+SU35_exp_BC &lt;- drop(res$data)
+summary(SU35_exp_BC)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# -1.419   0.000   1.613   2.831   4.756  17.768 
+</code></pre>
+
+<p>Since there are negative values after bias adjustment, all negative data is converted to zero.</p>
+
+<pre><code>SU35_exp_BC[SU35_exp_BC &lt; 0] &lt;- 0
+summary(SU35_exp_BC)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  0.000   0.000   1.613   2.943   4.756  17.768 
+</code></pre>
+
+<p>Plot the bias-adjusted SU35 forecast in 2016 by running</p>
+
+<pre><code>SU35_obs_Y2016 &lt;- drop(SU35_obs$data)[4, , ]
+SU35_exp_Y2016 &lt;- MeanDims(drop(SU35_exp$data)[, 4, , ], &#39;member&#39;)
+SU35_exp_BC_Y2016 &lt;- MeanDims(SU35_exp_BC[, 4, , ], &#39;member&#39;)
+cols &lt;- c(&quot;#fee5d9&quot;, &quot;#fcae91&quot;, &quot;#fb6a4a&quot;, &quot;#de2d26&quot;,&quot;#a50f15&quot;)
+
+toptitle &lt;- &#39;ERA5 SU35 forecast in 2016&#39;
+PlotEquiMap(SU35_obs_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+            intylat = 1, intxlon = 1, width = 6, height = 6,
+            filled.continents = FALSE, units = &#39;day&#39;, title_scale = .8, 
+            axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
+            cols = cols[1:4], col_sup = cols[5], brks = seq(0, 8, 2),
+            toptitle = toptitle, 
+            colNA = cols[1], bar_label_scale = 1.5,
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+
+toptitle &lt;- &#39;SU35 forecast in 2016&#39;
+PlotEquiMap(SU35_exp_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+            intylat = 1, intxlon = 1, width = 6, height = 6,
+            filled.continents = FALSE, units = &#39;day&#39;, title_scale = .8, 
+            axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
+            cols = cols[1:4], col_sup = cols[5], brks = seq(0, 8, 2),
+            toptitle = toptitle, 
+            colNA = cols[1], bar_label_scale = 1.5,
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+
+toptitle &lt;- &#39;Bias-adjusted SU35 forecast in 2016&#39;
+PlotEquiMap(SU35_exp_BC_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+            intylat = 1, intxlon = 1, width = 6, height = 6,
+            filled.continents = FALSE, units = &#39;day&#39;, title_scale = .8, 
+            axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
+            cols = cols[1:4], col_sup = cols[5], brks = seq(0, 8, 2),
+            toptitle = toptitle, 
+            colNA = cols[1], bar_label_scale = 1.5,
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+</code></pre>
+
+<p>You can see the figure as below.</p>
+
+<p><img src="vignettes/figures/SU35_ERA5_Y2016-1.png" width="30%"/>
+<img src="vignettes/figures/SU35_SEAS5_Y2016-1.png" width="30%"/>
+<img src="vignettes/figures/SU35_SEAS5_BC_Y2016-1.png" width="30%"/></p>
+
+<p>As seen above, the bias-adjusted SU35 forecasts are much closer to the ERA5 results, although differences remain.</p>
+
+<p>Beside of the original definition of SU35, here two supplementary functions in the package <code>CSIndicators</code> are demonstrated by computing its another definition with the percentile adjustment.</p>
+
+<hr/>
+
+<ol>
+<li><strong>AbsToProbs -</strong>: to transform ensemble forecast into probabilities by using the Cumulative Distribution Function</li>
+</ol>
+
+<h2>2. <strong>QThreshold -</strong>: to transform an absolute threshold into probabilities.</h2>
+
+<p>The above two supplementary functions are required to compute SU35 with the percentile adjustment. The function <code>AbsToProbs</code> would be applied to forecast and the <code>QThreshold</code> would be used to convert the observations to its percentile based on the given threshold.</p>
+
+<p>The revised definition of SU35 is to reduce the potential influence induced by the fixed threshold of temperature defined for the index, instead of using the absolute value, the percentile corresponding to 35°C for observation is compared to the percentile corresponding to the predicted daily maximum temperature before being considered as a ‘heat stress’ day.</p>
+
+<p>As mentioned, the forecast is translated to its percentile by using the function <code>ABsToProbs</code> by running</p>
+
+<pre><code>exp_percentile &lt;- AbsToProbs(tasmax_exp$data)
+S5txP &lt;- aperm(drop(exp_percentile), c(2, 1, 3, 4, 5))
+</code></pre>
+
+<p>After that, based on 35 of threshold, the percentile corresponding to each observational value can be calculated as follows.</p>
+
+<pre><code>obs_percentile &lt;- QThreshold(tasmax_obs$data, threshold = 35)
+obs_percentile &lt;- drop(obs_percentile)
+</code></pre>
+
+<p>After translating both forecasts and observations into probabilities, the comparison can then be done by running</p>
+
+<pre><code>SU35_exp_Percentile &lt;- TotalTimeExceedingThreshold(S5txP, threshold = obs_percentile, time_dim = &#39;ftime&#39;)
+</code></pre>
+
+<p>Compute the same ensemble-mean SU35 <strong>with percentile adjustment</strong> in 2016 by running</p>
+
+<pre><code>SU35_exp_per_Y2016 &lt;- MeanDims(SU35_exp_Percentile[, 4, , ], &#39;member&#39;)
+</code></pre>
+
+<p>Plot the same map for comparison</p>
+
+<pre><code>toptitle &lt;- &#39;SU35 forecast with percentile adjustment in 2016&#39;
+PlotEquiMap(SU35_exp_per_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
+            intylat = 1, intxlon = 1, width = 6, height = 6,
+            filled.continents = FALSE, units = &#39;day&#39;, title_scale = .8,
+            axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
+            cols = cols[1:4], col_sup = cols[5], brks = seq(0, 8, 2),
+            toptitle = toptitle,
+            colNA = cols[1], bar_label_scale = 1.5,
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2) 
+
+</code></pre>
+
+<p><img src="vignettes/figures/SU35_Percentile_SEAS5_Y2016-1.png" width="30%"/></p>
+
+<p>As seen in the figure above, applying the percentile adjustment seems to implicitly adjust certain extent of bias which was observed in the non-bias-adjusted SEAS5 forecast.</p>
+
+<p>The performance of comparison of skills between two definitions requires further analysis such as the application of more skill metrics.</p>
+
+<h3>4. AccumulationExceedingThreshold</h3>
+
+<p>The function ´AccumulationExceedingThreshold´ can compute GDD (Growing Degree Days).</p>
+
+<p>The definition of GDD is the summation of daily differences between daily average temperatures and 10°C between April 1st and October 31st. Here, the tas (daily average temperature) used above (in Section 2. PeriodMean) is loaded again (Please re-use the section of loading tas in Section 2). As per the definition, <code>threshold</code> is set to 10 with <code>diff</code> set to TRUE so that the function will compute the differences between daily temperature and the threshold given before calculating summation.</p>
+
+<p><em>Note: The data is in degrees Celsiusi at this point</em></p>
+
+<pre><code>GDD_exp &lt;- CST_AccumulationExceedingThreshold(tas_exp, threshold = 10, diff = TRUE)
+GDD_obs &lt;- CST_AccumulationExceedingThreshold(tas_obs, threshold = 10, diff = TRUE)
+</code></pre>
+
+<p>The summaries of GDD are </p>
+
+<pre><code>summary(GDD_exp$data)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1021    1331    1480    1469    1596    1873 
+
+summary(GDD_obs$data)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1195    1504    1687    1660    1804    2055 
+</code></pre>
+
+<p>To compute the correlation coefficient for the period from 2013-2016, run the following lines</p>
+
+<pre><code># reorder the dimension
+fcst &lt;- Reorder(drop(GDD_exp$data), c(4, 3, 2, 1))
+obs &lt;- Reorder(drop(GDD_obs$data), c(3, 2, 1))
+
+EnsCorr &lt;- veriApply(&#39;EnsCorr&#39;, fcst = fcst, obs = obs, ensdim = 4, tdim = 3)
+GDD_Corr &lt;- Reorder(EnsCorr, c(2, 1))
+</code></pre>
+
+<p>To plot the map of correlation coefficient of GDD for the 2013-2016 period.</p>
+
+<pre><code>cols &lt;- c(&quot;#f7fcf5&quot;, &quot;#e5f5e0&quot;, &quot;#c7e9c0&quot;, &quot;#a1d99b&quot;, &quot;#74c476&quot;)
+toptitle &lt;- &#39;2013-2016 correlation coefficient of GDD&#39;
+PlotEquiMap(GDD_Corr, lon = tas_obs$lon, lat = tas_obs$lat, 
+            intylat = 1, intxlon = 1, width = 6, height = 6, 
+            filled.continents = FALSE, units = &#39;correlation&#39;, 
+            title_scale = .8, axes_label_scale = 1, axes_tick_scale = 1, 
+            margin_scale = c(1, 1, 1, 1), cols = cols, brks = seq(0.5, 1, 0.1), 
+            toptitle = toptitle, bar_label_scale = 1.5, 
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+</code></pre>
+
+<p>The map of correlation coefficient for the 2013-2016 period is shown as below.</p>
+
+<p><img src="vignettes/figures/GDD_SEAS5_Corr_Y13-16-1.png" width="30%"/></p>
+
+<p>The 2013-2016 correlation coefficients of the SEAS5 forecasts of GDD in reference with ERA5 reanalysis over Douro Valley range between 0.6 and 0.8.</p>
+
+<h3>5. TotalSpellTimeExceedingThreshold</h3>
+
+<p>One of the critical agricultural indicators related to dry spell is the <strong>Warm Spell Duration Index (WSDI)</strong>, which is defined as the total count of days with at least 6 consecutive days when the daily maximum temperature exceeds its 90th percentile in the seven months into the future.</p>
+
+<p>The maximum temperature data used in Section 3. Since the daily maximum temperature needs to compare to its 90th percentile, the function <code>Threshold</code> in the <code>CSIndicators</code> package is required to compute the percentile of observations used for each day. Here the same period (2013-2016) is considered. </p>
+
+<pre><code>tx_p &lt;- CST_Threshold(tasmax_obs, threshold = 0.9)
+</code></pre>
+
+<p>The output will be the 90th percentile of each day of each grid point derived by using all the years in the data.See the dimension and summary as below.</p>
+
+<pre><code>dim(tx_p$data)
+#dataset   ftime     lat     lon 
+#      1     214       4       4 
+
+summary(tx_p$data)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 287.0   295.2   299.2   299.4   303.9   309.9 
+</code></pre>
+
+<p>With the prepared threshold (90th percentile), the WSDI can be computed by running</p>
+
+<pre><code>WSDI_exp &lt;- CST_TotalSpellTimeExceedingThreshold(tasmax_exp, threshold = tx_p, spell = 6)
+WSDI_obs &lt;- CST_TotalSpellTimeExceedingThreshold(tasmax_obs, threshold = tx_p, spell = 6)
+</code></pre>
+
+<p>After checking the summaries, compute the Fair Ranked Probability Skill Score (FRPSS) of WSDI by running the following lines</p>
+
+<pre><code># Reorder the data
+fcst &lt;- Reorder(drop(WSDI_exp$data), c(4, 3, 2, 1))
+obs &lt;- Reorder(drop(WSDI_obs$data), c(3, 2, 1))
+
+# summaries of WSDI
+summary(fcst)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  0.00   13.00   28.00   30.65   42.25   82.00 
+
+summary(obs)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  9.00   19.00   22.50   22.91   25.25   33.00 
+
+# compute FRPSS
+f &lt;- veriApply(&#39;FairRpss&#39;, fcst = fcst, obs = obs, ensdim = 4, tdim = 3, prob = 1:2/3)$skillscore
+WSDI_FRPSS &lt;- Reorder(f, c(2,1))
+</code></pre>
+
+<p>Plot the map of WSDI FRPSS for the period from 2013-2016</p>
+
+<pre><code>cols &lt;- c(&quot;#edf8fb&quot;, &quot;#ccece6&quot;, &quot;#99d8c9&quot;, &quot;#66c2a4&quot;)
+toptitle &lt;- &#39;SEAS5 WSDI FRPSS (2013-2016)&#39;
+
+PlotEquiMap(WSDI_FRPSS, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+            intylat = 1, intxlon = 1, width = 6, height = 6,
+            filled.continents = FALSE, units = &#39;FRPSS&#39;, title_scale = .8, 
+            axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1), 
+            cols = cols[1:3], col_inf = &#39;white&#39;, col_sup = cols[4], 
+            brks = seq(0, 0.9, 0.3), toptitle = toptitle, bar_label_scale = 1.5, 
+            bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
+</code></pre>
+
+<p>The FRPSS map for 2013-2016 SEAS WSDI is shown as below.</p>
+
+<p><img src="vignettes/figures/WSDI_SEAS5_FRPSS_Y13-16-1.png" width="30%"/></p>
+
+<p>As seen in the map, the FRPSS in the eastern part of Douro Valley falls in 0.6-0.9, which are good enough to be useful when compared to observational climatology.</p>
+
+<p>In addition to the grape/wine sector focused here, the MEDGOLD project also works on the other two sectors: olive/olive oil and durum wheat/pasta. Furthermore, the climate services are also provided at the longer term (up to 30 years) by other project partners.</p>
+
+<p>Click on <a href="https://www.med-gold.eu/climate-services/">MEDGOLD</a> for more information.</p>
+
+</body>
+
+</html>
