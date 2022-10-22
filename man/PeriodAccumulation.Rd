@@ -15,42 +15,63 @@ PeriodAccumulation(
 )
 }
 \arguments{
-\item{data}{a multidimensional array with named dimensions.}
+\item{data}{A multidimensional array with named dimensions.}
 
-\item{dates}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data'. By default it is NULL, to select a period this parameter must be provided.}
+\item{dates}{A vector of dates or a multidimensional array of dates with named
+dimensions matching the dimensions on parameter 'data'. By default it is 
+NULL, to select a period this parameter must be provided.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in 
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
+the period and the final month of the period. By default it is set to NULL 
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the function to compute the indicator. By default, it is set to 'time'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to 
+compute the indicator. By default, it is set to 'time'. More than one 
+dimension name matching the dimensions provided in the object 
+\code{data$data} can be specified.}
 
-\item{na.rm}{a logical value indicating whether to ignore NA values (TRUE) or  not (FALSE).}
+\item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) or 
+not (FALSE).}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A multidimensional array with named dimensions.
+A multidimensional array with named dimensions containing the 
+indicator in the element \code{data}.
 }
 \description{
-Period Accumulation computes the sum (accumulation) of a given variable in a period.
-Providing precipitation data, two agriculture indices can be obtained by using this function:
+Period Accumulation computes the sum (accumulation) of a given variable in a 
+period. Providing precipitation data, two agriculture indices can be obtained 
+by using this function:
 \itemize{
- \item\code{SprR}{Spring Total Precipitation: The total precipitation from April 21th to June 21st}
- \item\code{HarR}{Harvest Total Precipitation: The total precipitation from August 21st to October 21st}}
+ \item\code{SprR}{Spring Total Precipitation: The total precipitation from 
+                  April 21th to June 21st}
+ \item\code{HarR}{Harvest Total Precipitation: The total precipitation from 
+                  August 21st to October 21st}
+}
 }
 \examples{
-exp <- CSTools::lonlat_prec$data
+exp <- array(rnorm(216)*200, dim = c(dataset = 1, member = 2, sdate = 3, 
+            ftime = 9, lat = 2, lon = 2))
 TP <- PeriodAccumulation(exp, time_dim = 'ftime')
 data <- array(rnorm(5 * 3 * 214 * 2),
              c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 # ftime tested
 Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-              seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-              seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
 SprR <- PeriodAccumulation(data, dates = Dates, start = list(21, 4), end = list(21, 6))
 HarR <- PeriodAccumulation(data, dates = Dates, start = list(21, 8), end = list(21, 10))
+
 }

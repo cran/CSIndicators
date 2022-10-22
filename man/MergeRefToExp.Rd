@@ -19,33 +19,53 @@ MergeRefToExp(
 )
 }
 \arguments{
-\item{data1}{a multidimensional array with named dimensions.}
+\item{data1}{A multidimensional array with named dimensions.}
 
-\item{dates1}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data1'.}
+\item{dates1}{a vector of dates or a multidimensional array of dates with 
+named dimensions matching the dimensions on parameter 'data1'.}
 
-\item{start1}{a list to defined the initial date of the period to select from data1 by providing a list of two elements: the initial date of the period and the initial month of the period.}
+\item{start1}{A list to define the initial date of the period to select from 
+data1 by providing a list of two elements: the initial date of the period 
+and the initial month of the period.}
 
-\item{end1}{a list to defined the final date of the period to select from data1 by providing a list of two elements: the final day of the period and the final month of the period.}
+\item{end1}{A list to define the final date of the period to select from 
+data1 by providing a list of two elements: the final day of the period and 
+the final month of the period.}
 
-\item{data2}{a multidimensional array with named dimensions.}
+\item{data2}{A multidimensional array with named dimensions.}
 
-\item{dates2}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data2'.}
+\item{dates2}{A vector of dates or a multidimensional array of dates with 
+named dimensions matching the dimensions on parameter 'data2'.}
 
-\item{start2}{a list to defined the initial date of the period to select from data2 by providing a list of two elements: the initial date of the period and the initial month of the period.}
+\item{start2}{A list to define the initial date of the period to select from 
+data2 by providing a list of two elements: the initial date of the period 
+and the initial month of the period.}
 
-\item{end2}{a list to defined the final date of the period to select from data2 by providing a list of two elements: the final day of the period and the final month of the period.}
+\item{end2}{A list to define the final date of the period to select from 
+data2 by providing a list of two elements: the final day of the period and 
+the final month of the period.}
 
-\item{time_dim}{a character string indicating the name of the temporal dimension. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified. This dimension is required to subset the data in a requested period.}
+\item{time_dim}{A character string indicating the name of the temporal 
+dimension. By default, it is set to 'ftime'. More than one dimension name 
+matching the dimensions provided in the object \code{data$data} can be 
+specified. This dimension is required to subset the data in a requested period.}
 
-\item{sdate_dim}{a character string indicating the name of the dimension in which the initialization dates are stored.}
+\item{sdate_dim}{A character string indicating the name of the dimension in 
+which the initialization dates are stored.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
 A multidimensional array with named dimensions.
 }
 \description{
-Some indicators are defined for specific temporal periods (e.g.: summer from June 21st to September 21st). If the initialization forecast date is later than the one required for the indicator (e.g.: July 1st), the user may want to merge past observations, or other reference, to the forecast (or hindcast) to compute the indicator. The function \code{MergeObs2Exp} takes care of this steps.
+Some indicators are defined for specific temporal periods (e.g.: summer from 
+June 21st to September 21st). If the initialization forecast date is later 
+than the one required for the indicator (e.g.: July 1st), the user may want to 
+merge past observations, or other reference, to the forecast (or hindcast) to 
+compute the indicator. The function \code{MergeObs2Exp} takes care of this 
+steps.
 }
 \examples{
 data_dates <- c(seq(as.Date("01-07-1993", "\%d-\%m-\%Y", tz = 'UTC'),
@@ -61,4 +81,5 @@ data <- array(1:(2*154*2), c(time = 154, sdate = 2, member= 2))
 new_data <- MergeRefToExp(data1 = ref, dates1 = ref_dates, start1 = list(21, 6),
                          end1 = list(30, 6), data2 = data, dates2 = data_dates,
                          start2 = list(1, 7), end = list(21, 9))
+
 }

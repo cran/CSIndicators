@@ -66,9 +66,9 @@ With `grid` set to **r1440x721**, the SEAS5 forecast would be interpolated to th
 
 
 ```
-S5path_prlr <- list(path = '/esarchive/exp/ecmwf/system5c3s/original_files/chou/daily_mean/$VAR_NAME$_s0-24h/$VAR_NAME$_$YEAR$$MONTH$01.nc')
+S5path_prlr <- list(path = '/esarchive/exp/ecmwf/system5c3s/$STORE_FREQ$_mean/$VAR_NAME$_s0-24h/$VAR_NAME$_$START_DATE$.nc')
 
-path_ERA5prlr_CDS <- list(path = '/esarchive/recon/ecmwf/era5/daily_mean/$VAR_NAME$_f1h-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc')
+path_ERA5prlr_CDS <- list(path = '/esarchive/recon/ecmwf/era5/$STORE_FREQ$_mean/$VAR_NAME$_f1h-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc')
 
 sdates <- paste0(2013:2016, '04', '01')
 
@@ -182,8 +182,8 @@ For the function `PeriodMean`, we use Growing Season Temperature (**GST**) as an
 Firstly, we prepare a sample data of daily mean temperature of SEAS5 and ERA5 data sets with the same starting dates, spatial domain, interpolation grid and method by running
 
 ```
-S5path <- list(path = '/esarchive/exp/ecmwf/system5c3s/daily_mean/$VAR_NAME$_f6h/$VAR_NAME$_$YEAR$$MONTH$01.nc')
-ERA5path <- list(path = '/esarchive/recon/ecmwf/era5/daily_mean/$VAR_NAME$_f1h-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc')
+S5path <- list(path = '/esarchive/exp/ecmwf/system5c3s/$STORE_FREQ$_mean/$VAR_NAME$_f6h/$VAR_NAME$_$YEAR$$MONTH$01.nc')
+ERA5path <- list(path = '/esarchive/recon/ecmwf/era5/$STORE_FREQ$_mean/$VAR_NAME$_f1h-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc')
 
 c(tas_exp, tas_obs) %<-% CST_Load(var = 'tas', exp = list(S5path), obs = list(ERA5path),
                                   sdates = sdates, lonmax = 353, lonmin = 352.25,
@@ -206,8 +206,8 @@ dim(tas_exp$data)
 #      1       3       4     214       4       4 
 
 summary(tas_obs$data - 273.15)
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 3.63   14.38   17.89   17.65   21.24   30.21 
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  3.63   13.97   17.25   17.29   20.75   30.21
 
 summary(tas_exp$data - 273.15)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -235,12 +235,12 @@ The summaries and dimensions of the output are as follows:
 
 ```
 summary(GST_exp$data)
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 14.23   15.78   16.50   16.50   17.17   18.70 
 
 summary(GST_obs$data)
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 15.34   16.85   17.72   17.65   18.41   19.60 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 15.34   16.77   17.22   17.29   18.00   18.75
 
 dim(GST_exp$data)
 #dataset  member   sdate     lat     lon 
@@ -292,8 +292,8 @@ Here, we take SU35 as example, therefore the daily temperature maximum of the en
 Load SEAS5 and ERA5 daily temperature maximum by running
 
 ```
-S5path <- list(path = '/esarchive/exp/ecmwf/system5c3s/daily/$VAR_NAME$/$VAR_NAME$_$YEAR$$MONTH$01.nc')
-ERA5path <- list(path = '/esarchive/recon/ecmwf/era5/daily/$VAR_NAME$-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc')
+S5path <- list(path = '/esarchive/exp/ecmwf/system5c3s/$STORE_FREQ$/$VAR_NAME$/$VAR_NAME$_$YEAR$$MONTH$01.nc')
+ERA5path <- list(path = '/esarchive/recon/ecmwf/era5/$STORE_FREQ$/$VAR_NAME$-r1440x721cds/$VAR_NAME$_$YEAR$$MONTH$.nc')
 
 c(tasmax_exp, tasmax_obs) %<-% CST_Load(var = 'tasmax', exp = list(S5path),
                                         obs = list(ERA5path), sdates = sdates,
@@ -482,7 +482,7 @@ summary(GDD_exp$data)
 
 summary(GDD_obs$data)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1195    1504    1687    1660    1804    2055 
+# 1195    1483    1569    1583    1730    1874 
 ```
 
 To compute the correlation coefficient for the period from 2013-2016, run the following lines
@@ -534,8 +534,8 @@ dim(tx_p$data)
 #      1     214       4       4 
 
 summary(tx_p$data)
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 287.0   295.2   299.2   299.4   303.9   309.9 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 13.83   22.08   26.08   26.22   30.72   36.72 
 ```
 
 With the prepared threshold (90th percentile), the WSDI can be computed by running
@@ -554,12 +554,12 @@ obs <- Reorder(drop(WSDI_obs$data), c(3, 2, 1))
 
 # summaries of WSDI
 summary(fcst)
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  0.00   13.00   28.00   30.65   42.25   82.00 
- 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.00   13.00   28.00   31.22   46.00   82.00 
+
 summary(obs)
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  9.00   19.00   22.50   22.91   25.25   33.00 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 9.00   19.00   22.50   23.16   26.00   33.00 
  
 # compute FRPSS
 f <- veriApply('FairRpss', fcst = fcst, obs = obs, ensdim = 4, tdim = 3, prob = 1:2/3)$skillscore

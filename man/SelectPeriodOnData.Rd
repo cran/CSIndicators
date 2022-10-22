@@ -7,32 +7,43 @@
 SelectPeriodOnData(data, dates, start, end, time_dim = "ftime", ncores = NULL)
 }
 \arguments{
-\item{data}{a multidimensional array with named dimensions.}
+\item{data}{A multidimensional array with named dimensions.}
 
-\item{dates}{a vector of dates or a multidimensional array of dates with named dimensions.}
+\item{dates}{A vector of dates or a multidimensional array of dates with named
+dimensions.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period.}
+\item{end}{An optional parameter to defined the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
+the period and the final month of the period.}
 
-\item{time_dim}{a character string indicating the name of the dimension to compute select the dates. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to 
+compute select the dates. By default, it is set to 'ftime'. More than one 
+dimension name matching the dimensions provided in the object 
+\code{data$data} can be specified.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A multidimensional array with named dimensions.
+A multidimensional array with named dimensions containing the subset 
+of the object \code{data} during the period requested from \code{start} to 
+\code{end}.
 }
 \description{
 Auxiliary function to subset data for a specific period.
 }
 \examples{
 data <- array(rnorm(5 * 3 * 214 * 2),
-                   c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
+             c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
 Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-              seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-              seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
 dim(Dates) <- c(ftime = 214, sdate = 3)
 Period <- SelectPeriodOnData(data, Dates, start = list(21, 6), end = list(21, 9))

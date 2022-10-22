@@ -18,36 +18,59 @@ AccumulationExceedingThreshold(
 )
 }
 \arguments{
-\item{data}{a multidimensional array with named dimensions.}
+\item{data}{A multidimensional array with named dimensions.}
 
-\item{threshold}{a multidimensional array with named dimensions in the same units as parameter 'data' and with the common dimensions of the element 'data' of the same length.}
+\item{threshold}{a multidimensional array with named dimensions in the same
+units as parameter 'data' and with the common dimensions of the element 
+'data' of the same length.}
 
-\item{op}{a opartor '>' (by default), '<', '>=' or '<='.}
+\item{op}{An operator '>' (by default), '<', '>=' or '<='.}
 
-\item{diff}{a logical value indicating whether to accumulate the difference between data and threshold (TRUE) or not (FALSE by default).}
+\item{diff}{A logical value indicating whether to accumulate the difference
+between data and threshold (TRUE) or not (FALSE by default).}
 
-\item{dates}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data'. By default it is NULL, to select a period this parameter must be provided.}
+\item{dates}{A vector of dates or a multidimensional array of dates with named 
+dimensions matching the dimensions on parameter 'data'. By default it is 
+NULL, to select a period this parameter must be provided.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to
+select from the data by providing a list of two elements: the final day of
+the period and the final month of the period. By default it is set to NULL
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the function to compute the indicator. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to
+compute the indicator. By default, it is set to 'ftime'. More than one
+dimension name matching the dimensions provided in the object
+\code{data$data} can be specified.}
 
-\item{na.rm}{a logical value indicating whether to ignore NA values (TRUE) or  not (FALSE).}
+\item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) or 
+not (FALSE).}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel
+computation.}
 }
 \value{
-A multidimensional array with named dimensions.
+A multidimensional array with named dimensions containing the 
+indicator in the element \code{data}.
 }
 \description{
-The accumulation (sum) of a variable in the days (or time steps) that the variable is exceeding (or not exceeding) a threshold during a period. The threshold provided must be 
-in the same units than the variable units, i.e. to use a percentile as a scalar, 
-the function \code{Threshold} or \code{QThreshold} may be needed. 
-Providing mean daily temperature data, the following agriculture indices for heat stress can be obtained by using this function:
+The accumulation (sum) of a variable in the days (or time steps) that the 
+variable is exceeding (or not exceeding) a threshold during a period. The 
+threshold provided must be in the same units than the variable units, i.e. to 
+use a percentile as a scalar, the function \code{Threshold} or 
+\code{QThreshold} may be needed. Providing mean daily temperature data, the 
+following agriculture indices for heat stress can be obtained by using this 
+function:
 \itemize{
- \item\code{GDD}{Summation of daily differences between daily average temperatures and 10°C between April 1st and October 31st}}
+ \item\code{GDD}{Summation of daily differences between daily average 
+                 temperatures and 10°C between April 1st and October 31st}
+}
 }
 \examples{
 # Assuming data is already (tasmax + tasmin)/2 - 10

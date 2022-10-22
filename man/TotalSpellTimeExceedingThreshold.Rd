@@ -17,41 +17,70 @@ TotalSpellTimeExceedingThreshold(
 )
 }
 \arguments{
-\item{data}{a multidimensional array with named dimensions.}
+\item{data}{A multidimensional array with named dimensions.}
 
-\item{threshold}{a multidimensional array with named dimensions in the same units as parameter 'data' and with the common dimensions of the element 'data' of the same length. If \code{timd_dim} is in the dimension (with the same length as \code{data}), the comparison will be done day by day.}
+\item{threshold}{A multidimensional array with named dimensions in the same 
+units as parameter 'data' and with the common dimensions of the element 
+'data' of the same length. If \code{timd_dim} is in the dimension (with the 
+same length as \code{data}), the comparison will be done day by day.}
 
-\item{spell}{a scalar indicating the minimum length of the spell.}
+\item{spell}{A scalar indicating the minimum length of the spell.}
 
-\item{op}{a opartor '>' (by default), '<', '>=' or '<='.}
+\item{op}{An operator '>' (by default), '<', '>=' or '<='.}
 
-\item{dates}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data'. By default it is NULL, to select a period this parameter must be provided.}
+\item{dates}{A vector of dates or a multidimensional array of dates with named
+dimensions matching the dimensions on parameter 'data'. By default it is 
+NULL, to select a period this parameter must be provided.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in 
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
+the period and the final month of the period. By default it is set to NULL 
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the function to compute the indicator. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to 
+compute the indicator. By default, it is set to 'ftime'. More than one 
+dimension name matching the dimensions provided in the object 
+\code{data$data} can be specified.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A multidimensional array with named dimensions.
+A multidimensional array with named dimensions containing the indicator
+in the element \code{data}.
 }
 \description{
-The number of days (when daily data is provided) that are part of a spell (defined by its minimum length e.g. 6 consecutive days) that exceed (or not exceed) a threshold are calculated with \code{TotalSpellTimeExceedingThreshold}.
-This function allows to compute indicators widely used in Climate Services, such as:
+The number of days (when daily data is provided) that are part of a spell 
+(defined by its minimum length e.g. 6 consecutive days) that exceed (or not 
+exceed) a threshold are calculated with \code{TotalSpellTimeExceedingThreshold}.
+This function allows to compute indicators widely used in Climate Services, 
+such as:
 \itemize{
-\code{WSDI}{Warm Spell Duration Index that count the total number of days with at least 6 consecutive days when the daily temperature maximum exceeds its 90th percentile.}}
-This function requires the data and the threshold to be in the same units. The 90th percentile can be translate into absolute values given a reference dataset using function \code{Threshold} or the data can be transform into probabilites by using function \code{AbsToProbs}. See section @examples.
+\code{WSDI}{Warm Spell Duration Index that count the total number of days 
+            with at least 6 consecutive days when the daily temperature 
+            maximum exceeds its 90th percentile.}
+}
+This function requires the data and the threshold to be in the same units. The 
+90th percentile can be translate into absolute values given a reference 
+dataset using function \code{Threshold} or the data can be transform into 
+probabilites by using function \code{AbsToProbs}. See section @examples.
 }
 \details{
-This function considers NA values as the end of the spell. For a different behaviour consider to modify the 'data' input by substituting NA values by values exceeding the threshold.
+This function considers NA values as the end of the spell. For a 
+different behaviour consider to modify the 'data' input by substituting NA 
+values by values exceeding the threshold.
 }
 \examples{
 data <- array(rnorm(120), c(member = 1, sdate = 2, time = 20, lat = 4))
 threshold <- array(rnorm(4), c(lat = 4))
 total <- TotalSpellTimeExceedingThreshold(data, threshold, spell = 6)
+
 }
 \seealso{
 [Threshold()] and [AbsToProbs()].

@@ -1,43 +1,74 @@
 #'Transform an absolute threshold into probabilities
 #'
-#'From a user perspective, an absolute threshold can be very useful for a specific needs (e.g.: grape variety).
-#' However, this absolute threshold could be transform to a relative threshold in order to get its frequency in a given dataset.
-#'Therefore, the function \code{QThreshold} returns the probability of an absolute threshold.
-#'This is done by computing the Cumulative Distribution Function of a sample and leaving-one-ot.
-#' The sample used will depend on the dimensions of the data provided and the dimension names provided in sdate_dim and memb_dim parameters:
+#'From the user's perspective, an absolute threshold can be very useful for a 
+#'specific needs (e.g.: grape variety). However, this absolute threshold could 
+#'be transformed to a relative threshold in order to get its frequency in a given 
+#'dataset. Therefore, the function \code{QThreshold} returns the probability of 
+#'an absolute threshold. This is done by computing the Cumulative Distribution 
+#'Function of a sample and leaving one out. The sample used will depend on the 
+#'dimensions of the data provided and the dimension names provided in sdate_dim 
+#'and memb_dim parameters:
+#' 
 #'\itemize{
-#'  \item{Wheter a forecast (hindcast) has dimensions member and start date, and both must be used in the sample, their names should be passed in sdate_dim and memb_dim.}
-#'  \item{Wheter a forecast (hindcast) has dimensions member and start date, and only start date must be used in the sample (the calculation is done in each separate member), memb_dim can be set to NULL.}
-#'  \item{Wheter a reference (observations) has start date dimension, the sample used is the start date dimension.}
-#'  \item{Wheter a reference (observations) doesn't have start date dimension, the sample used must be especified in sdate_dim parameter.}}
+#'  \item{If a forecast (hindcast) has dimensions member and start date, and
+#'        both must be used in the sample, their names should be passed in 
+#'        sdate_dim and memb_dim.}
+#'  \item{If a forecast (hindcast) has dimensions member and start date, and
+#'        only start date must be used in the sample (the calculation is done in
+#'        each separate member), memb_dim can be set to NULL.}
+#'  \item{If a reference (observations) has start date dimension, the sample
+#'        used is the start date dimension.}
+#'  \item{If a reference (observations) doesn't have start date dimension, 
+#'        the sample used must be especified in sdate_dim parameter.}
+#'}
 #'
-#'@param data an 's2dv_cube' object as provided function \code{CST_Load} in package CSTools.
-#'@param threshold an 's2dv_cube' object as output of a 'CST_' function in the same units as parameter 'data' and with the common dimensions of the element 'data' of the same length. A single scalar is also possible.
-#'@param start an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.
-#'@param end an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.
-#'@param time_dim a character string indicating the name of the temporal dimension. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified. This dimension is required to subset the data in a requested period.
-#'@param memb_dim a character string indicating the name of the dimension in which the ensemble members are stored.
-#'@param sdate_dim a character string indicating the name of the dimension in which the initialization dates are stored. 
-#'@param ncores an integer indicating the number of cores to use in parallel computation.
+#'@param data An 's2dv_cube' object as provided function \code{CST_Load} in 
+#'  package CSTools.
+#'@param threshold An 's2dv_cube' object as output of a 'CST_' function in the 
+#'  same units as parameter 'data' and with the common dimensions of the element
+#'  'data' of the same length. A single scalar is also possible.
+#'@param start An optional parameter to defined the initial date of the period 
+#'  to select from the data by providing a list of two elements: the initial 
+#'  date of the period and the initial month of the period. By default it is set
+#'  to NULL and the indicator is computed using all the data provided in 
+#'  \code{data}.
+#'@param end An optional parameter to defined the final date of the period to 
+#'  select from the data by providing a list of two elements: the final day of 
+#'  the period and the final month of the period. By default it is set to NULL 
+#'  and the indicator is computed using all the data provided in \code{data}.
+#'@param time_dim A character string indicating the name of the temporal 
+#'  dimension. By default, it is set to 'ftime'. More than one dimension name 
+#'  matching the dimensions provided in the object \code{data$data} can be 
+#'  specified. This dimension is required to subset the data in a requested 
+#'  period.
+#'@param memb_dim A character string indicating the name of the dimension in 
+#'  which the ensemble members are stored.
+#'@param sdate_dim A character string indicating the name of the dimension in 
+#'  which the initialization dates are stored. 
+#'@param ncores An integer indicating the number of cores to use in parallel 
+#'  computation.
 #'
-#'@return A 's2dv_cube' object containing the probabilites in the element \code{data}.
-#'
-#'@import multiApply
-#'@importFrom ClimProjDiags Subset
+#'@return An 's2dv_cube' object containing the probability of an absolute 
+#'threshold in the element \code{data}.
 #'
 #'@examples
 #'threshold <- 26
-#'exp <- CSTools::lonlat_prec
+#'exp <- NULL
+#'exp$data <- array(abs(rnorm(112)*26), dim = c(member = 7, sdate = 8, ftime = 2))
+#'class(exp) <- 's2dv_cube'
 #'exp_probs <- CST_QThreshold(exp, threshold)
 #'exp$data <- array(rnorm(5 * 3 * 214 * 2),
 #'                    c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
 #'exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
-#'                     as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
-#'                 seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
-#'                     as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
-#'                 seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
-#'                     as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
-#'exp_probs <- CST_QThreshold(exp, threshold, start = list(21, 4), end = list(21, 6))
+#'                        as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'                    seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'                        as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'                    seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'                        as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'exp_probs <- CST_QThreshold(exp, threshold)
+#' 
+#'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
                            time_dim = 'ftime', memb_dim = 'member', sdate_dim = 'sdate',
@@ -51,13 +82,13 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
     if (is.null(dim(data$Dates$start))) {
       if (length(data$Dates$start) != dim(data$data)[time_dim]) {
         if (length(data$Dates$start) == 
-            prod(dim(data$data)[time_dim] * dim(data$data)['sdate'])) {
+            prod(dim(data$data)[time_dim] * dim(data$data)[sdate_dim])) {
           dim(data$Dates$start) <- c(dim(data$data)[time_dim],
-                                     dim(data$data)['sdate'])
+                                     dim(data$data)[sdate_dim])
+        } else {
+          warning("Dimensions in 'data' element 'Dates$start' are missed and ",
+                  "all data would be used.")
         }
-      } else {
-        warning("Dimensions in 'data' element 'Dates$start' are missed and",
-                "all data would be used.")
       }
     }
   }
@@ -77,36 +108,66 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
 }
 #'Transform an absolute threshold into probabilities
 #'
-#'From a user perspective, an absolute threshold can be very useful for a specific needs (e.g.: grape variety).
-#' However, this absolute threshold could be transform to a relative threshold in order to get its frequency in a given dataset.
-#'Therefore, the function \code{QThreshold} returns the probability of an absolute threshold.
-#'This is done by computing the Cumulative Distribution Function of a sample and leaving-one-ot.
-#' The sample used will depend on the dimensions of the data provided and the dimension names provided in sdate_dim and memb_dim parameters:
+#'From the user's perspective, an absolute threshold can be very useful for a 
+#'specific needs (e.g.: grape variety). However, this absolute threshold could 
+#'be transformed to a relative threshold in order to get its frequency in a given 
+#'dataset. Therefore, the function \code{QThreshold} returns the probability of 
+#'an absolute threshold. This is done by computing the Cumulative Distribution 
+#'Function of a sample and leaving-one-ot. The sample used will depend on the 
+#'dimensions of the data provided and the dimension names provided in sdate_dim 
+#'and memb_dim parameters:
 #'\itemize{
-#'  \item{Wheter a forecast (hindcast) has dimensions member and start date, and both must be used in the sample, their names should be passed in sdate_dim and memb_dim.}
-#'  \item{Wheter a forecast (hindcast) has dimensions member and start date, and only start date must be used in the sample (the calculation is done in each separate member), memb_dim can be set to NULL.}
-#'  \item{Wheter a reference (observations) has start date dimension, the sample used is the start date dimension.}
-#'  \item{Wheter a reference (observations) doesn't have start date dimension, the sample used must be especified in sdate_dim parameter.}}
+#'  \item{If a forecast (hindcast) has dimensions member and start date, and
+#'        both must be used in the sample, their names should be passed in 
+#'        sdate_dim and memb_dim.}
+#'  \item{If a forecast (hindcast) has dimensions member and start date, and
+#'        only start date must be used in the sample (the calculation is done in
+#'        each separate member), memb_dim can be set to NULL.}
+#'  \item{If a reference (observations) has start date dimension, the sample
+#'        used is the start date dimension.}
+#'  \item{If a reference (observations) doesn't have start date dimension, 
+#'        the sample used must be especified in sdate_dim parameter.}
+#'}
 #'
-#'@param data a multidimensional array with named dimensions.
-#'@param threshold a multidimensional array with named dimensions in the same units as parameter 'data' and with the common dimensions of the element 'data' of the same length.
-#'@param dates a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data'. By default it is NULL, to select a period this parameter must be provided.
-#'@param start an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.
-#'@param end an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.
-#'@param time_dim a character string indicating the name of the temporal dimension. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified. This dimension is required to subset the data in a requested period.
-#'@param memb_dim a character string indicating the name of the dimension in which the ensemble members are stored.
-#'@param sdate_dim a character string indicating the name of the dimension in which the initialization dates are stored. 
-#'@param ncores an integer indicating the number of cores to use in parallel computation.
+#'@param data A multidimensional array with named dimensions.
+#'@param threshold A multidimensional array with named dimensions in the same 
+#'  units as parameter 'data' and with the common dimensions of the element 
+#'  'data' of the same length.
+#'@param dates A vector of dates or a multidimensional array of dates with named
+#'  dimensions matching the dimensions on parameter 'data'. By default it is 
+#'  NULL, to select a period this parameter must be provided.
+#'@param start An optional parameter to defined the initial date of the period 
+#'  to select from the data by providing a list of two elements: the initial 
+#'  date of the period and the initial month of the period. By default it is set
+#'  to NULL and the indicator is computed using all the data provided in 
+#'  \code{data}.
+#'@param end An optional parameter to defined the final date of the period to 
+#'  select from the data by providing a list of two elements: the final day of 
+#'  the period and the final month of the period. By default it is set to NULL 
+#'  and the indicator is computed using all the data provided in \code{data}.
+#'@param time_dim A character string indicating the name of the temporal 
+#'  dimension. By default, it is set to 'ftime'. More than one dimension name 
+#'  matching the dimensions provided in the object \code{data$data} can be 
+#'  specified. This dimension is required to subset the data in a requested 
+#'  period.
+#'@param memb_dim A character string indicating the name of the dimension in 
+#'  which the ensemble members are stored.
+#'@param sdate_dim A character string indicating the name of the dimension in 
+#'  which the initialization dates are stored. 
+#'@param ncores An integer indicating the number of cores to use in parallel 
+#'  computation.
 #'
-#'@return A multidimensional array with named dimensions.
+#'@return A multidimensional array with named dimensions containing the 
+#'probability of an absolute threshold in the element \code{data}.
 #'
-#'@import multiApply
-#'@importFrom ClimProjDiags Subset
 #'@examples
 #'threshold = 25
 #'data <- array(rnorm(5 * 3 * 20 * 2, mean = 26), 
 #'              c(member = 5, sdate = 3, time = 20, lon = 2)) 
 #'thres_q <- QThreshold(data, threshold)
+#' 
+#'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
                        time_dim = 'time', memb_dim = 'member', sdate_dim = 'sdate',
@@ -154,10 +215,10 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
           if (!is.null(dim(dates)) && sdate_dim %in% dim(dates)) {
             dates_thres <- Subset(dates, along = sdate_dim, indices = 1) 
             threshold <- SelectPeriodOnData(threshold, dates_thres, start, end,
-                                           time_dim = time_dim, ncores = ncores)
+                                            time_dim = time_dim, ncores = ncores)
           } else {
-             threshold <- SelectPeriodOnData(threshold, dates, start, end,
-                                           time_dim = time_dim, ncores = ncores)
+            threshold <- SelectPeriodOnData(threshold, dates, start, end,
+                                            time_dim = time_dim, ncores = ncores)
           }
         }
       }
@@ -204,7 +265,7 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
   dims <- dim(data)
   # no 'member' involving 
   qres <- unlist(lapply(1:dims, function(x) { 
-                           ecdf(data[-x])(threshold)}))
+                        ecdf(data[-x])(threshold)}))
   dim(qres) <- c(dims)
   return(qres)
 }
@@ -212,8 +273,8 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
   qres <- unlist(
   lapply(1:(dim(data)[1]), function(x) { # dim 1: member
             lapply(1:(dim(data)[2]), function(y) { # dim 2: sdate
-                     ecdf(as.vector(data[,-y]))(threshold)
-                     })
+                   ecdf(as.vector(data[,-y]))(threshold)
+                   })
         }))
   dim(qres) <- c(dim(data)[2], dim(data)[1])
   return(qres)

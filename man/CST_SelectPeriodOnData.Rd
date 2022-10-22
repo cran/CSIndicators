@@ -7,31 +7,43 @@
 CST_SelectPeriodOnData(data, start, end, time_dim = "ftime", ncores = NULL)
 }
 \arguments{
-\item{data}{an 's2dv_cube' object as provided function \code{CST_Load} in package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Load} in 
+package CSTools.}
 
-\item{start}{a parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period.}
+\item{start}{A parameter to defined the initial date of the period to select 
+from the data by providing a list of two elements: the initial date of the 
+period and the initial month of the period.}
 
-\item{end}{a parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period.}
+\item{end}{A parameter to defined the final date of the period to select from 
+the data by providing a list of two elements: the final day of the period 
+and the final month of the period.}
 
-\item{time_dim}{a character string indicating the name of the dimension to compute select the dates. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to 
+compute select the dates. By default, it is set to 'ftime'. More than one 
+dimension name matching the dimensions provided in the object 
+\code{data$data} can be specified.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A 's2dv_cube' object containing the subset of the object \code{data$data} during the period requested from \code{start} to \code{end}.
+A 's2dv_cube' object containing the subset of the object 
+\code{data$data} during the period requested from \code{start} to \code{end}.
 }
 \description{
 Auxiliary function to subset data for a specific period.
 }
 \examples{
-exp <- CSTools::lonlat_prec
+exp <- NULL
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
-                   c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
-exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-              seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-              seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+                 c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
+exp$Dates$start <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+                       as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                   seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                       as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                   seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                       as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+class(exp) <- 's2dv_cube'
 Period <- CST_SelectPeriodOnData(exp, start = list(21, 6), end = list(21, 9))
+
 }

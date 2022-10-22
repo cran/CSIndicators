@@ -30,7 +30,7 @@ Although wind turbines cannot extract all of the kinetic energy in the wind, and
 As an example, we simulate a time series of 1000 wind speed values from a Weibull distribution with scale factor of 6 and a shape factor of 2, which represent a sample of wind speed values obtained at a single location. The Weibull distribution is often assumed to fit observed wind speed values to a probability distribution function. Then, each instantaneous wind speed value is converted to its equivalent WPD.
 The `mean` and `sd` of the WPD can be employed to summarize the wind resource in that location. Otherwise, we can plot the histograms to see the full distribution of values:
 
-```{r}
+```{r, fig.width=7}
 library(CSIndicators)
 set.seed(1)
 oldpar <- par(no.readonly = TRUE) 
@@ -42,7 +42,6 @@ par(mfrow=c(1, 2))
 hist(wind, breaks = seq(0, 20))
 hist(WPD, breaks = seq(0, 4000, 200))
 ```
-<img src="vignettes/figures/WPD_histogram.png" width="66%"/>
 
 As you can see the histogram of the WPD is highly skewed, even if the wind speed was only a little skewed!
 
@@ -62,7 +61,7 @@ Notice that power curves are intended to be used with 10-minutal steady wind spe
 
 Following on the previous example, we will compute now the CF that would be obtained from our sample of 1000 wind speed values when using a turbine of class IEC I, and compare it to the CF values for a class III:
 
-```{r}
+```{r, fig.width=7}
 WCFI <- WindCapacityFactor(wind, IEC_class = "I")
 WCFIII <- WindCapacityFactor(wind, IEC_class = "III")
 par(mfrow=c(1, 3))
@@ -72,7 +71,6 @@ hist(WCFIII, breaks = seq(0, 1, 0.05), ylim = c(0, 500))
 par(oldpar) 
 ```
 
-<img src="vignettes/figures/WCF_histogram.png" width="100%"/>
 
 From the CF histograms we can see that, for this particular wind speed distribution, the IEC I turbine (designed for high winds) producess less energy than the IEC III turbine, which is more suitable for this range of wind speed values.
 

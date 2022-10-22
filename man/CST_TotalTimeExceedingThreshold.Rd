@@ -16,41 +16,75 @@ CST_TotalTimeExceedingThreshold(
 )
 }
 \arguments{
-\item{data}{a 's2dv_cube' object as provided by function \code{CST_Load} in package CSTools.}
+\item{data}{An 's2dv_cube' object as provided by function \code{CST_Load} in 
+package CSTools.}
 
-\item{threshold}{a 's2dv_cube' object as output of a 'CST_' function in the same units as parameter \code{data} and with the common dimensions of the element \code{data} of the same length (e.g. an array with the same lengths of longitude and latitude). A single scalar is also possible (for the case of comparing all grid points with the same scalar).}
+\item{threshold}{An 's2dv_cube' object as output of a 'CST_' function in the 
+same units as parameter \code{data} and with the common dimensions of the 
+element \code{data} of the same length (e.g. an array with the same lengths 
+of longitude and latitude). A single scalar is also possible (for the case 
+of comparing all grid points with the same scalar).}
 
-\item{op}{a opartor '>' (by default), '<', '>=' or '<='.}
+\item{op}{An operator '>' (by default), '<', '>=' or '<='.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in 
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
+the period and the final month of the period. By default it is set to NULL 
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the function to compute the indicator. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to 
+compute the indicator. By default, it is set to 'ftime'. More than one 
+dimension name matching the dimensions provided in the object 
+\code{data$data} can be specified.}
 
-\item{na.rm}{a logical value indicating whether to ignore NA values (TRUE) or not (FALSE).}
+\item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) or 
+not (FALSE).}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A 's2dv_cube' object containing the indicator in the element \code{data}.
+An 's2dv_cube' object containing the indicator in the element 
+\code{data}.
 }
 \description{
-The Total Time of a variable exceeding (or not) a Threshold returns the total number of days 
-(if the data provided is daily, or the corresponding units to the data frequency provided)
-that a variable is exceeding a threshold during a period. The threshold provided must be 
-in the same units than the variable units, i.e. to use a percentile as a scalar, 
-the function \code{AbsToProbs} or \code{QThreshold}  may be needed (see examples). 
-Providing maximum temperature daily data, the following agriculture indices for heat stress can be obtained by using this function:
+The Total Time of a variable exceeding (or not) a Threshold returns the total 
+number of days (if the data provided is daily, or the corresponding units to 
+the data frequency provided) that a variable is exceeding a threshold during a 
+period. The threshold provided must be in the same units than the variable 
+units, i.e. to use a percentile as a scalar, 
+the function \code{AbsToProbs} or \code{QThreshold}  may be needed (see 
+examples). Providing maximum temperature daily data, the following agriculture 
+indices for heat stress can be obtained by using this function:
 \itemize{
- \item\code{SU35}{Total count of days when daily maximum temperatures exceed 35°C in the seven months from the start month given (e.g. from April to October for start month of April).}
- \item\code{SU36}{Total count of days when daily maximum temperatures exceed 36 between June 21st and September 21st}
- \item\code{SU40}{Total count of days when daily maximum temperatures exceed 40 between June 21st and September 21st}
- \item\code{Spr32}{Total count of days when daily maximum temperatures exceed 32 between April 21st and June 21st}
+ \item\code{SU35}{Total count of days when daily maximum temperatures exceed 
+                  35°C in the seven months from the start month given (e.g. 
+                  from April to October for start month of April).}
+ \item\code{SU36}{Total count of days when daily maximum temperatures exceed 
+                  36 between June 21st and September 21st}
+ \item\code{SU40}{Total count of days when daily maximum temperatures exceed 
+                  40 between June 21st and September 21st}
+ \item\code{Spr32}{Total count of days when daily maximum temperatures exceed
+                   32 between April 21st and June 21st}
 }
 }
 \examples{
-exp <- CSTools::lonlat_data$exp
-exp$data <- CSTools::lonlat_data$exp$data[1, 1, 3, 3, 1, 1]
+exp <- NULL
+exp$data <- array(abs(rnorm(5 * 3 * 214 * 2)*280),
+                 c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+exp$Dates$start <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+                      as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                  seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                      as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                  seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                      as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+class(exp) <- 's2dv_cube'
 DOT <- CST_TotalTimeExceedingThreshold(exp, threshold = 280)
+
 }

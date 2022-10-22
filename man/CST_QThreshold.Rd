@@ -16,48 +16,81 @@ CST_QThreshold(
 )
 }
 \arguments{
-\item{data}{an 's2dv_cube' object as provided function \code{CST_Load} in package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Load} in 
+package CSTools.}
 
-\item{threshold}{an 's2dv_cube' object as output of a 'CST_' function in the same units as parameter 'data' and with the common dimensions of the element 'data' of the same length. A single scalar is also possible.}
+\item{threshold}{An 's2dv_cube' object as output of a 'CST_' function in the 
+same units as parameter 'data' and with the common dimensions of the element
+'data' of the same length. A single scalar is also possible.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in 
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
+the period and the final month of the period. By default it is set to NULL 
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the temporal dimension. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified. This dimension is required to subset the data in a requested period.}
+\item{time_dim}{A character string indicating the name of the temporal 
+dimension. By default, it is set to 'ftime'. More than one dimension name 
+matching the dimensions provided in the object \code{data$data} can be 
+specified. This dimension is required to subset the data in a requested 
+period.}
 
-\item{memb_dim}{a character string indicating the name of the dimension in which the ensemble members are stored.}
+\item{memb_dim}{A character string indicating the name of the dimension in 
+which the ensemble members are stored.}
 
-\item{sdate_dim}{a character string indicating the name of the dimension in which the initialization dates are stored.}
+\item{sdate_dim}{A character string indicating the name of the dimension in 
+which the initialization dates are stored.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A 's2dv_cube' object containing the probabilites in the element \code{data}.
+An 's2dv_cube' object containing the probability of an absolute 
+threshold in the element \code{data}.
 }
 \description{
-From a user perspective, an absolute threshold can be very useful for a specific needs (e.g.: grape variety).
-However, this absolute threshold could be transform to a relative threshold in order to get its frequency in a given dataset.
-Therefore, the function \code{QThreshold} returns the probability of an absolute threshold.
-This is done by computing the Cumulative Distribution Function of a sample and leaving-one-ot.
-The sample used will depend on the dimensions of the data provided and the dimension names provided in sdate_dim and memb_dim parameters:
+From the user's perspective, an absolute threshold can be very useful for a 
+specific needs (e.g.: grape variety). However, this absolute threshold could 
+be transformed to a relative threshold in order to get its frequency in a given 
+dataset. Therefore, the function \code{QThreshold} returns the probability of 
+an absolute threshold. This is done by computing the Cumulative Distribution 
+Function of a sample and leaving one out. The sample used will depend on the 
+dimensions of the data provided and the dimension names provided in sdate_dim 
+and memb_dim parameters:
+}
+\details{
 \itemize{
- \item{Wheter a forecast (hindcast) has dimensions member and start date, and both must be used in the sample, their names should be passed in sdate_dim and memb_dim.}
- \item{Wheter a forecast (hindcast) has dimensions member and start date, and only start date must be used in the sample (the calculation is done in each separate member), memb_dim can be set to NULL.}
- \item{Wheter a reference (observations) has start date dimension, the sample used is the start date dimension.}
- \item{Wheter a reference (observations) doesn't have start date dimension, the sample used must be especified in sdate_dim parameter.}}
+ \item{If a forecast (hindcast) has dimensions member and start date, and
+       both must be used in the sample, their names should be passed in 
+       sdate_dim and memb_dim.}
+ \item{If a forecast (hindcast) has dimensions member and start date, and
+       only start date must be used in the sample (the calculation is done in
+       each separate member), memb_dim can be set to NULL.}
+ \item{If a reference (observations) has start date dimension, the sample
+       used is the start date dimension.}
+ \item{If a reference (observations) doesn't have start date dimension, 
+       the sample used must be especified in sdate_dim parameter.}
+}
 }
 \examples{
 threshold <- 26
-exp <- CSTools::lonlat_prec
+exp <- NULL
+exp$data <- array(abs(rnorm(112)*26), dim = c(member = 7, sdate = 8, ftime = 2))
+class(exp) <- 's2dv_cube'
 exp_probs <- CST_QThreshold(exp, threshold)
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
                    c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
 exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-                    as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-                seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-                    as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-                seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-                    as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
-exp_probs <- CST_QThreshold(exp, threshold, start = list(21, 4), end = list(21, 6))
+                       as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                   seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                       as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                   seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                       as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+exp_probs <- CST_QThreshold(exp, threshold)
+
 }

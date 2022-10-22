@@ -17,42 +17,72 @@ QThreshold(
 )
 }
 \arguments{
-\item{data}{a multidimensional array with named dimensions.}
+\item{data}{A multidimensional array with named dimensions.}
 
-\item{threshold}{a multidimensional array with named dimensions in the same units as parameter 'data' and with the common dimensions of the element 'data' of the same length.}
+\item{threshold}{A multidimensional array with named dimensions in the same 
+units as parameter 'data' and with the common dimensions of the element 
+'data' of the same length.}
 
-\item{dates}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data'. By default it is NULL, to select a period this parameter must be provided.}
+\item{dates}{A vector of dates or a multidimensional array of dates with named
+dimensions matching the dimensions on parameter 'data'. By default it is 
+NULL, to select a period this parameter must be provided.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period 
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in 
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
+the period and the final month of the period. By default it is set to NULL 
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the temporal dimension. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified. This dimension is required to subset the data in a requested period.}
+\item{time_dim}{A character string indicating the name of the temporal 
+dimension. By default, it is set to 'ftime'. More than one dimension name 
+matching the dimensions provided in the object \code{data$data} can be 
+specified. This dimension is required to subset the data in a requested 
+period.}
 
-\item{memb_dim}{a character string indicating the name of the dimension in which the ensemble members are stored.}
+\item{memb_dim}{A character string indicating the name of the dimension in 
+which the ensemble members are stored.}
 
-\item{sdate_dim}{a character string indicating the name of the dimension in which the initialization dates are stored.}
+\item{sdate_dim}{A character string indicating the name of the dimension in 
+which the initialization dates are stored.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation.}
+\item{ncores}{An integer indicating the number of cores to use in parallel 
+computation.}
 }
 \value{
-A multidimensional array with named dimensions.
+A multidimensional array with named dimensions containing the 
+probability of an absolute threshold in the element \code{data}.
 }
 \description{
-From a user perspective, an absolute threshold can be very useful for a specific needs (e.g.: grape variety).
-However, this absolute threshold could be transform to a relative threshold in order to get its frequency in a given dataset.
-Therefore, the function \code{QThreshold} returns the probability of an absolute threshold.
-This is done by computing the Cumulative Distribution Function of a sample and leaving-one-ot.
-The sample used will depend on the dimensions of the data provided and the dimension names provided in sdate_dim and memb_dim parameters:
+From the user's perspective, an absolute threshold can be very useful for a 
+specific needs (e.g.: grape variety). However, this absolute threshold could 
+be transformed to a relative threshold in order to get its frequency in a given 
+dataset. Therefore, the function \code{QThreshold} returns the probability of 
+an absolute threshold. This is done by computing the Cumulative Distribution 
+Function of a sample and leaving-one-ot. The sample used will depend on the 
+dimensions of the data provided and the dimension names provided in sdate_dim 
+and memb_dim parameters:
 \itemize{
- \item{Wheter a forecast (hindcast) has dimensions member and start date, and both must be used in the sample, their names should be passed in sdate_dim and memb_dim.}
- \item{Wheter a forecast (hindcast) has dimensions member and start date, and only start date must be used in the sample (the calculation is done in each separate member), memb_dim can be set to NULL.}
- \item{Wheter a reference (observations) has start date dimension, the sample used is the start date dimension.}
- \item{Wheter a reference (observations) doesn't have start date dimension, the sample used must be especified in sdate_dim parameter.}}
+ \item{If a forecast (hindcast) has dimensions member and start date, and
+       both must be used in the sample, their names should be passed in 
+       sdate_dim and memb_dim.}
+ \item{If a forecast (hindcast) has dimensions member and start date, and
+       only start date must be used in the sample (the calculation is done in
+       each separate member), memb_dim can be set to NULL.}
+ \item{If a reference (observations) has start date dimension, the sample
+       used is the start date dimension.}
+ \item{If a reference (observations) doesn't have start date dimension, 
+       the sample used must be especified in sdate_dim parameter.}
+}
 }
 \examples{
 threshold = 25
 data <- array(rnorm(5 * 3 * 20 * 2, mean = 26), 
              c(member = 5, sdate = 3, time = 20, lon = 2)) 
 thres_q <- QThreshold(data, threshold)
+
 }

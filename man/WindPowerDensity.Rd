@@ -15,27 +15,46 @@ WindPowerDensity(
 )
 }
 \arguments{
-\item{wind}{a multidimensional array, vector or scalar with instantaneous wind speeds expressed in m/s.}
+\item{wind}{A multidimensional array, vector or scalar with instantaneous wind
+speeds expressed in m/s.}
 
-\item{ro}{a scalar, or alternatively a multidimensional array with the same dimensions as wind, with the air density expressed in kg/m^3. By default it takes the value 1.225, the standard density of air at 15ºC and 1013.25 hPa.}
+\item{ro}{A scalar, or alternatively a multidimensional array with the same
+dimensions as wind, with the air density expressed in kg/m^3. By default it
+takes the value 1.225, the standard density of air at 15ºC and 1013.25 hPa.}
 
-\item{dates}{a vector of dates or a multidimensional array of dates with named dimensions matching the dimensions on parameter 'data'. By default it is NULL, to select a period this parameter must be provided.}
+\item{dates}{A vector of dates or a multidimensional array of dates with named
+dimensions matching the dimensions on parameter 'data'. By default it is
+NULL, to select a period this parameter must be provided.}
 
-\item{start}{an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{start}{An optional parameter to defined the initial date of the period
+to select from the data by providing a list of two elements: the initial
+date of the period and the initial month of the period. By default it is set
+to NULL and the indicator is computed using all the data provided in
+\code{data}.}
 
-\item{end}{an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period. By default it is set to NULL and the indicator is computed using all the data provided in \code{data}.}
+\item{end}{An optional parameter to defined the final date of the period to
+select from the data by providing a list of two elements: the final day of
+the period and the final month of the period. By default it is set to NULL
+and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{a character string indicating the name of the function to compute the indicator. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to
+compute the indicator. By default, it is set to 'ftime'. More than one
+dimension name matching the dimensions provided in the object
+\code{data$data} can be specified.}
 
-\item{ncores}{an integer indicating the number of cores to use in parallel computation for temporal subsetting.}
+\item{ncores}{An integer indicating the number of cores to use in parallel
+computation for temporal subsetting.}
 }
 \value{
-An array with the same dimensions as wind, containing Wind Power Density expressed in W/m^2.
+An array with the same dimensions as wind, containing Wind Power 
+Density expressed in W/m^2.
 }
 \description{
-Wind Power Density computes the wind power that is available for extraction per square meter of swept area.
+Wind Power Density computes the wind power that is available for 
+extraction per square meter of swept area.
 
-It is computed as 0.5*ro*wspd^3. As this function is non-linear, it will give inaccurate results if used with period means.
+It is computed as 0.5*ro*wspd^3. As this function is non-linear, 
+it will give inaccurate results if used with period means.
 }
 \examples{
 wind <- rweibull(n = 100, shape = 2, scale = 6)

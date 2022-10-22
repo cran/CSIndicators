@@ -2,13 +2,23 @@
 #'
 #' Auxiliary function to subset dates for a specific period.
 #'
-#'@param dates a vector of dates or a multidimensional array of dates with named dimensions.
-#'@param start an optional parameter to defined the initial date of the period to select from the data by providing a list of two elements: the initial date of the period and the initial month of the period.
-#'@param end an optional parameter to defined the final date of the period to select from the data by providing a list of two elements: the final day of the period and the final month of the period.
-#'@param time_dim a character string indicating the name of the dimension to compute select the dates. By default, it is set to 'ftime'. More than one dimension name matching the dimensions provided in the object \code{data$data} can be specified.
-#'@param ncores an integer indicating the number of cores to use in parallel computation.
+#'@param dates A vector of dates or a multidimensional array of dates with named
+#'  dimensions.
+#'@param start An optional parameter to defined the initial date of the period 
+#'  to select from the data by providing a list of two elements: the initial 
+#'  date of the period and the initial month of the period.
+#'@param end An optional parameter to defined the final date of the period to 
+#'  select from the data by providing a list of two elements: the final day of 
+#'  the period and the final month of the period.
+#'@param time_dim A character string indicating the name of the dimension to 
+#'  compute select the dates. By default, it is set to 'ftime'. More than one 
+#'  dimension name matching the dimensions provided in the object 
+#'  \code{data$data} can be specified.
+#'@param ncores An integer indicating the number of cores to use in parallel 
+#'  computation.
 #'
-#'@return A multidimensional array with named dimensions.
+#'@return A multidimensional array with named dimensions containing the subset of 
+#'the vector dates during the period requested from \code{start} to \code{end}.
 #'
 #'@import multiApply
 #'@importFrom s2dv Reorder
@@ -16,14 +26,14 @@
 #'@examples
 #'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
-#'               seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
-#'               seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
 #'Period <- SelectPeriodOnDates(Dates, start = list(21, 6), end = list(21, 9))
 #'@export
 SelectPeriodOnDates <- function(dates, start, end,
-                         time_dim = 'ftime', ncores = NULL) {
+                                time_dim = 'ftime', ncores = NULL) {
   # TODO: consider NAs
   if (is.null(dim(dates))) {
     dim(dates) <- length(dates)

@@ -5,13 +5,13 @@
   position <- logical(length(dates))
   if (ini_month != end_month) {
     pos <- sort(unique(c(pos[months == ini_month & days >= ini_day],
-                    pos[months < end_month & months > ini_month],
-                    pos[months == end_month & days <= end_day])))
+                         pos[months < end_month & months > ini_month],
+                         pos[months == end_month & days <= end_day])))
     position[pos] <- TRUE
     position[-pos] <- FALSE
   } else {
     pos <- sort(unique(c(pos[months == ini_month &
-                    days >= ini_day & days <= end_day])))
+                         days >= ini_day & days <= end_day])))
     position[pos] <- TRUE
     position[-pos] <- FALSE
   }
