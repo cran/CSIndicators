@@ -1,4 +1,13 @@
+# CSIndicators 1.0.0 (Release date: 2023-04-05)
+**Fixes**  
+- Correct vignettes figures links.
+
+**New features**  
+- Exceeding Threshold functions to allow between thresholds or equal threshold options.
+- New s2dv_cube object development for all the functions, unit tests, examples and vignettes.
+
 # CSIndicators 0.0.2 (Release date: 2022-10-21)
+**Fixes**  
 - Correct figures of EnergyIndicators vignette.
 - Sanity check correction in functions CST_PeriodAccumulation, CST_AbsToProbs, CST_AccumulationExceedingThreshold, CST_MergeRefToExp, CST_PeriodMean, CST_QThreshold, CST_SelectPeriodOnData, CST_Threshold, TotalSpellTimeExceedingThreshold, CST_TotalTimeExceedingThreshold, CST_WindCapacityFactor and CST_WindPowerDensity.
 - Revise examples using s2dv::InsertDim in MergeRefToExp().

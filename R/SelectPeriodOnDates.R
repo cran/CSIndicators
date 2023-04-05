@@ -2,8 +2,7 @@
 #'
 #' Auxiliary function to subset dates for a specific period.
 #'
-#'@param dates A vector of dates or a multidimensional array of dates with named
-#'  dimensions.
+#'@param dates An array of dates with named dimensions.
 #'@param start An optional parameter to defined the initial date of the period 
 #'  to select from the data by providing a list of two elements: the initial 
 #'  date of the period and the initial month of the period.
@@ -30,15 +29,18 @@
 #'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(ftime = 214, sdate = 3)
 #'Period <- SelectPeriodOnDates(Dates, start = list(21, 6), end = list(21, 9))
 #'@export
 SelectPeriodOnDates <- function(dates, start, end,
                                 time_dim = 'ftime', ncores = NULL) {
-  # TODO: consider NAs
   if (is.null(dim(dates))) {
     dim(dates) <- length(dates)
     names(dim(dates)) <- time_dim
   }
+
+  # TODO: consider NAs
+  
   res <- Apply(list(dates), target_dims = time_dim,
                fun = .position,
                ini_day = start[[1]], ini_month = start[[2]],

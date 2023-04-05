@@ -62,17 +62,17 @@ class(exp) <- 's2dv_cube'
 TP <- CST_PeriodAccumulation(exp)
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
                    c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
-exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-                   seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-                   seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
 SprR <- CST_PeriodAccumulation(exp, start = list(21, 4), end = list(21, 6))
 dim(SprR$data)
-head(SprR$Dates)
+head(SprR$attrs$Dates)
 HarR <- CST_PeriodAccumulation(exp, start = list(21, 8), end = list(21, 10))
 dim(HarR$data)
-head(HarR$Dates)
+head(HarR$attrs$Dates)
 
 }

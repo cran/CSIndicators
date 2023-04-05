@@ -10,8 +10,9 @@
 #'piecewise approximating function to obtain a smooth power curve. Five 
 #'different power curves that span different IEC classes can be selected (see 
 #'below).
-#'@references Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, F. J. (2019). 
-#'Seasonal forecasts of wind power generation. Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135 
+#'@references Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, 
+#'F. J. (2019). Seasonal forecasts of wind power generation. 
+#'Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135 
 #'@references International Standard IEC 61400-1 (third ed.) (2005)
 #'
 #'@param wind An s2dv_cube object with instantaneous wind speeds expressed in m/s.
@@ -39,48 +40,49 @@
 #'@return An s2dv_cube object containing the Wind Capacity Factor (unitless).
 #'
 #'@examples
-#'wind <- array(rweibull(n = 100, shape = 2, scale = 6), c(member = 10, lat = 2, lon = 5))
-#'wind <- CSTools::s2dv_cube(data = wind, lat = c(40, 41), lon = 1:5,
-#'                           Variable = list(varName = 'sfcWind', level = 'Surface'), 
-#'                           Datasets = 'synthetic', when = Sys.time(),
-#'                           Dates = list(start = '1990-01-01 00:00:00', end = '1990-01-01 00:00:00'),
-#'                           source_file = NA)
+#'wind <- NULL
+#'wind$data <- array(rweibull(n = 100, shape = 2, scale = 6), 
+#'                   c(member = 10, lat = 2, lon = 5))
+#'wind$coords <- list(lat =  c(40, 41), lon = 1:5)
+#'variable <- list(varName = 'sfcWind', 
+#'                 metadata = list(sfcWind = list(level = 'Surface')))
+#'wind$attrs <- list(Variable = variable, Datasets = 'synthetic', 
+#'                   when = Sys.time(), Dates = '1990-01-01 00:00:00')
+#'class(wind) <- 's2dv_cube'
 #'WCF <- CST_WindCapacityFactor(wind, IEC_class = "III")
 #'
 #'@export
 CST_WindCapacityFactor <- function(wind, IEC_class = c("I", "I/II", "II", "II/III", "III"),
                                    start = NULL, end = NULL, time_dim = 'ftime',
                                    ncores = NULL) {
+  # Check 's2dv_cube'
   if (!inherits(wind, 's2dv_cube')) {
-    stop("Parameter 'wind' must be of the class 's2dv_cube', ",
-         "as output by CSTools::CST_Load.")
+    stop("Parameter 'wind' must be of the class 's2dv_cube'.")
   } 
-  # when subsetting is needed, dimensions are also needed:
+  # Dates subset
   if (!is.null(start) && !is.null(end)) {
-    if (is.null(dim(wind$Dates$start))) {
-      if (length(wind$Dates$start) != dim(wind$data)[time_dim]) {
-        if (length(wind$Dates$start) ==
-            prod(dim(wind$data)[time_dim] * dim(wind$data)['sdate'])) {
-          dim(wind$Dates$start) <- c(dim(wind$data)[time_dim],
-                                     dim(wind$data)['sdate'])
-        } else {
-          warning("Dimensions in 'data' element 'Dates$start' are missed and ",
-                  "all data would be used.")
-        }
-      }
+    if (is.null(dim(wind$attrs$Dates))) {
+      warning("Dimensions in 'wind' element 'attrs$Dates' are missed and ",
+              "all data would be used.")
+      start <- NULL
+      end <- NULL
     }
   }
-  wind$data <- WindCapacityFactor(wind$data, IEC_class = IEC_class, dates = wind$Dates[[1]],
-                                  start = start, end = end, ncores = ncores)
-  if ('Variable' %in% names(wind)) {
-    if ('varName' %in% names(wind$Variable)) {
-      wind$Variable$varName <- 'WindCapacityFactor'
+  
+  WindCapacity <- WindCapacityFactor(wind = wind$data, IEC_class = IEC_class, 
+                                     dates = wind$attrs$Dates, start = start, 
+                                     end = end, ncores = ncores)
+  wind$data <- WindCapacity
+  if ('Variable' %in% names(wind$attrs)) {
+    if ('varName' %in% names(wind$attrs$Variable)) {
+      wind$attrs$Variable$varName <- 'WindCapacityFactor'
     }
   }
   if (!is.null(start) && !is.null(end)) {
-     wind$Dates <- SelectPeriodOnDates(dates = wind$Dates[[1]],
-                                       start = start, end = end,
-                                       time_dim = time_dim, ncores = ncores)
+     wind$attrs$Dates <- SelectPeriodOnDates(dates = wind$attrs$Dates,
+                                             start = start, end = end,
+                                             time_dim = time_dim, 
+                                             ncores = ncores)
   }
   return(wind)
 }
@@ -96,8 +98,9 @@ CST_WindCapacityFactor <- function(wind, IEC_class = c("I", "I/II", "II", "II/II
 #'piecewise approximating function to obtain a smooth power curve. Five 
 #'different power curves that span different IEC classes can be selected (see 
 #'below).
-#'@references Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, F. J. (2019). 
-#'Seasonal forecasts of wind power generation. Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135 
+#'@references Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, 
+#'F. J. (2019). Seasonal forecasts of wind power generation. 
+#'Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135 
 #'@references International Standard IEC 61400-1 (third ed.) (2005)
 #'
 #'@param wind A multidimensional array, vector or scalar with instantaneous wind
@@ -150,17 +153,18 @@ WindCapacityFactor <- function(wind, IEC_class = c("I", "I/II", "II", "II/III", 
 	)
 	pc_file <- system.file("power_curves", pc_files[IEC_class], package = "CSIndicators", mustWork = T)
 	pc <- read_pc(pc_file)
-        if (!is.null(dates)) {
-          if (!is.null(start) && !is.null(end)) {
-            if (!any(c(is.list(start), is.list(end)))) {
-              stop("Parameter 'start' and 'end' must be lists indicating the ",
-                   "day and the month of the period start and end.")
-            }
-            wind <- SelectPeriodOnData(wind, dates, start, end,
-                                       time_dim = time_dim, ncores = ncores)
-          }
-        }
+  if (!is.null(dates)) {
+    if (!is.null(start) && !is.null(end)) {
+      if (!any(c(is.list(start), is.list(end)))) {
+        stop("Parameter 'start' and 'end' must be lists indicating the ",
+             "day and the month of the period start and end.")
+      }
+      wind <- SelectPeriodOnData(wind, dates, start, end,
+                                 time_dim = time_dim, ncores = ncores)
+    }
+  }
 
 	cf <- wind2CF(wind, pc)
+  dim(cf) <- dim(wind)
 	return(cf)
 }

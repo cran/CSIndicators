@@ -68,12 +68,12 @@ threshold <- 0.9
 exp <- NULL
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
                    c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
-exp$Dates$start <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-                   seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-                   seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
 class(exp) <- 's2dv_cube'
 exp_probs <- CST_Threshold(exp, threshold, start = list(21, 4), end = list(21, 6))
 

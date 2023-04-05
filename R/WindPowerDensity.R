@@ -30,47 +30,47 @@
 #'@return An s2dv_cube object containing Wind Power Density expressed in W/m^2.
 #'
 #'@examples
-#'wind <- array(rweibull(n = 100, shape = 2, scale = 6), c(member = 10, lat = 2, lon = 5))
-#'wind <- CSTools::s2dv_cube(data = wind, lat = c(40, 41), lon = 1:5,
-#'                           Variable = list(varName = 'sfcWind', level = 'Surface'), 
-#'                           Datasets = 'synthetic', when = Sys.time(),
-#'                           Dates = list(start = '1990-01-01 00:00:00', end = '1990-01-01 00:00:00'),
-#'                           source_file = NA)
-#'WPD <- CST_WindPowerDensity(wind)
+#'wind <- NULL
+#'wind$data <- array(rweibull(n = 100, shape = 2, scale = 6), 
+#'                   c(member = 10, lat = 2, lon = 5))
+#'wind$coords <- list(lat =  c(40, 41), lon = 1:5)
+#'variable <- list(varName = 'sfcWind', 
+#'                 metadata = list(sfcWind = list(level = 'Surface')))
+#'wind$attrs <- list(Variable = variable, Datasets = 'synthetic', 
+#'                   when = Sys.time(), Dates = '1990-01-01 00:00:00')
+#'class(wind) <- 's2dv_cube'
+#'WCF <- CST_WindPowerDensity(wind)
 #'
 #'@export
 CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL, 
                                  time_dim = 'ftime', ncores = NULL) {
+  # Check 's2dv_cube'
   if (!inherits(wind, 's2dv_cube')) {
-    stop("Parameter 'wind' must be of the class 's2dv_cube', ",
-         "as output by CSTools::CST_Load.")
+    stop("Parameter 'wind' must be of the class 's2dv_cube'.")
   }
-  # when subsetting is needed, dimensions are also needed:
+  # Dates subset
   if (!is.null(start) && !is.null(end)) {
-    if (is.null(dim(wind$Dates$start))) {
-      if (length(wind$Dates$start) != dim(wind$data)[time_dim]) {
-        if (length(wind$Dates$start) ==
-            prod(dim(wind$data)[time_dim] * dim(wind$data)['sdate'])) {
-          dim(wind$Dates$start) <- c(dim(wind$data)[time_dim],
-                                     dim(wind$data)['sdate'])
-        } else {
-          warning("Dimensions in 'data' element 'Dates$start' are missed and ",
-                  "all data would be used.")
-        }
-      }
+    if (is.null(dim(wind$attrs$Dates))) {
+      warning("Dimensions in 'wind' element 'attrs$Dates' are missed and ",
+              "all data would be used.")
+      start <- NULL
+      end <- NULL
     }
   }
-  wind$data <- WindPowerDensity(wind$data, ro = ro, dates = wind$Dates[[1]], 
-                                start = start, end = end, ncores = ncores)
-  if ('Variable' %in% names(wind)) {
-    if ('varName' %in% names(wind$Variable)) {
-      wind$Variable$varName <- 'WindPowerDensity'
+  WindPower <- WindPowerDensity(wind = wind$data, ro = ro, 
+                                dates = wind$attrs$Dates, start = start, 
+                                end = end, ncores = ncores)
+  wind$data <- WindPower
+  if ('Variable' %in% names(wind$attrs)) {
+    if ('varName' %in% names(wind$attrs$Variable)) {
+      wind$attrs$Variable$varName <- 'WindPowerDensity'
     }
   }
   if (!is.null(start) && !is.null(end)) {
-     wind$Dates <- SelectPeriodOnDates(dates = wind$Dates[[1]],
-                                       start = start, end = end,
-                                       time_dim = time_dim, ncores = ncores)
+    wind$attrs$Dates <- SelectPeriodOnDates(dates = wind$attrs$Dates,
+                                            start = start, end = end,
+                                            time_dim = time_dim, 
+                                            ncores = ncores)
   }	
   return(wind)
 }
@@ -115,8 +115,8 @@ CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL,
 #'WPD <- WindPowerDensity(wind)
 #'
 #'@export
-WindPowerDensity <- function(wind, ro = 1.225, dates = NULL, start = NULL, end = NULL,
-                             time_dim = 'time', ncores = NULL) {
+WindPowerDensity <- function(wind, ro = 1.225, dates = NULL, start = NULL, 
+                             end = NULL, time_dim = 'time', ncores = NULL) {
   if (!is.null(dates)) {
     if (!is.null(start) && !is.null(end)) {
       if (!any(c(is.list(start), is.list(end)))) {
@@ -127,6 +127,5 @@ WindPowerDensity <- function(wind, ro = 1.225, dates = NULL, start = NULL, end =
                                  time_dim = time_dim, ncores = ncores)
     }
   }
-
 	return(0.5 * ro * wind^3)
 }

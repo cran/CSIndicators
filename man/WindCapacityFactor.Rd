@@ -70,8 +70,9 @@ WCF <- WindCapacityFactor(wind, IEC_class = "III")
 
 }
 \references{
-Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, F. J. (2019). 
-Seasonal forecasts of wind power generation. Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135
+Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, 
+F. J. (2019). Seasonal forecasts of wind power generation. 
+Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135
 
 International Standard IEC 61400-1 (third ed.) (2005)
 }

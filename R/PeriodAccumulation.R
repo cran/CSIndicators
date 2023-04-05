@@ -41,53 +41,50 @@
 #'TP <- CST_PeriodAccumulation(exp)
 #'exp$data <- array(rnorm(5 * 3 * 214 * 2),
 #'                    c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
-#'exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
-#'                    seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
-#'                    seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
 #'SprR <- CST_PeriodAccumulation(exp, start = list(21, 4), end = list(21, 6))
 #'dim(SprR$data)
-#'head(SprR$Dates)
+#'head(SprR$attrs$Dates)
 #'HarR <- CST_PeriodAccumulation(exp, start = list(21, 8), end = list(21, 10))
 #'dim(HarR$data)
-#'head(HarR$Dates)
+#'head(HarR$attrs$Dates)
 #'
 #'@import multiApply
 #'@export
 CST_PeriodAccumulation <- function(data, start = NULL, end = NULL,
                                    time_dim = 'ftime', na.rm = FALSE,
                                    ncores = NULL) {
+  # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
-    stop("Parameter 'data' must be of the class 's2dv_cube', ",
-         "as output by CSTools::CST_Load.")
+    stop("Parameter 'data' must be of the class 's2dv_cube'.")
   }
-  # when subsetting is needed, dimensions are also needed:
+  # Dates subset
   if (!is.null(start) && !is.null(end)) {
-    if (is.null(dim(data$Dates$start))) {
-      if (length(data$Dates$start) != dim(data$data)[time_dim]) {
-        if (length(data$Dates$start) == 
-            prod(dim(data$data)[time_dim] * dim(data$data)['sdate'])) {
-          dim(data$Dates$start) <- c(dim(data$data)[time_dim],
-                                     dim(data$data)['sdate'])
-        } else {
-          warning("Dimensions in 'data' element 'Dates$start' are missed and ",
-                  "all data would be used.")
-        }
-      }
+    if (is.null(dim(data$attrs$Dates))) {
+      warning("Dimensions in 'data' element 'attrs$Dates' are missed and ",
+              "all data would be used.")
+      start <- NULL
+      end <- NULL
     }
   }
-  total <- PeriodAccumulation(data$data, data$Dates[[1]], start, end,
-                             time_dim = time_dim, na.rm = na.rm, ncores = ncores)
+
+  total <- PeriodAccumulation(data$data, dates = data$attrs$Dates, start, end,
+                              time_dim = time_dim, na.rm = na.rm, ncores = ncores)
   data$data <- total
   if (!is.null(start) && !is.null(end)) {
-     data$Dates <- SelectPeriodOnDates(dates = data$Dates[[1]],
-                                       start = start, end = end, 
-                                       time_dim = time_dim, ncores = ncores)
+     data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
+                                             start = start, end = end, 
+                                             time_dim = time_dim, 
+                                             ncores = ncores)
   }
   return(data)
 }
+
 #'Period Accumulation on multidimensional array objects
 #'
 #'Period Accumulation computes the sum (accumulation) of a given variable in a 
@@ -144,8 +141,8 @@ CST_PeriodAccumulation <- function(data, start = NULL, end = NULL,
 #'@import multiApply
 #'@export
 PeriodAccumulation <- function(data, dates = NULL, start = NULL, end = NULL, 
-                              time_dim = 'time', na.rm = FALSE,
-                              ncores = NULL) {
+                               time_dim = 'time', na.rm = FALSE,
+                               ncores = NULL) {
   if (is.null(data)) {
     stop("Parameter 'data' cannot be NULL.")
   }

@@ -58,10 +58,10 @@ this function:
 exp <- NULL
 exp$data <- array(rnorm(45), dim = c(member = 7, ftime = 8))
 class(exp) <- 's2dv_cube'
-exp$Dates$start <- c(seq(as.Date("01-07-1993", "\%d-\%m-\%Y", tz = 'UTC'),
-                   as.Date("01-08-1993","\%d-\%m-\%Y", tz = 'UTC'), "day"),
-               seq(as.Date("01-07-1994", "\%d-\%m-\%Y", tz = 'UTC'),
-                   as.Date("01-08-1994","\%d-\%m-\%Y", tz = 'UTC'), "day"))
+exp$attrs$Dates <- c(seq(as.Date("01-07-1993", "\%d-\%m-\%Y", tz = 'UTC'),
+                        as.Date("01-08-1993","\%d-\%m-\%Y", tz = 'UTC'), "day"),
+                    seq(as.Date("01-07-1994", "\%d-\%m-\%Y", tz = 'UTC'),
+                        as.Date("01-08-1994","\%d-\%m-\%Y", tz = 'UTC'), "day"))
 SA <- CST_PeriodMean(exp)
 
 }

@@ -36,7 +36,8 @@ read_pc <- function(file) {
 	pc$points <- rbind(c(0, 0), read.delim(file, comment.char = "#"))
 
 	# Create an approximating function
-	pc$fun <- approxfun(pc$points$WindSpeed, pc$points$Power, method = "linear", yleft = NA, yright = 0)
+	pc$fun <- approxfun(pc$points$WindSpeed, pc$points$Power, method = "linear", 
+                      yleft = NA, yright = 0)
 
 	# Get the rated power from the power values
 	pc$attr$RatedPower <- max(pc$points$Power)
@@ -47,16 +48,16 @@ read_pc <- function(file) {
 #=======================
 # Evaluate the linear piecewise approximation function with the wind speed inputs to get wind power
 #=======================
-wind2power <- function(wind, pc)
-{	power <- pc$fun(wind)
+wind2power <- function(wind, pc) {
+  power <- pc$fun(wind)
 	return(power)
 }
 
 #=======================
 # Convert wind to power, and divide by rated power to obtain Capacity Factor values
 #=======================
-wind2CF <- function(wind, pc)
-{	power <- wind2power(wind, pc)
+wind2CF <- function(wind, pc) {
+  power <- wind2power(wind, pc)
 	CF <- power / pc$attr$RatedPower
 	return(CF)
 }

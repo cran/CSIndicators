@@ -37,13 +37,13 @@ Auxiliary function to subset data for a specific period.
 exp <- NULL
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
                  c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
-exp$Dates$start <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-                   seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-                   seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-                       as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(exp$attrs$Dates) <- c(ftime = 214, sdate = 3)
 class(exp) <- 's2dv_cube'
 Period <- CST_SelectPeriodOnData(exp, start = list(21, 6), end = list(21, 9))
-
 }

@@ -7,8 +7,7 @@
 SelectPeriodOnDates(dates, start, end, time_dim = "ftime", ncores = NULL)
 }
 \arguments{
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions.}
+\item{dates}{An array of dates with named dimensions.}
 
 \item{start}{An optional parameter to defined the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -40,5 +39,6 @@ Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"),
               as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(Dates) <- c(ftime = 214, sdate = 3)
 Period <- SelectPeriodOnDates(Dates, start = list(21, 6), end = list(21, 9))
 }

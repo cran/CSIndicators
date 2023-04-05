@@ -51,13 +51,16 @@ It is computed as 0.5*ro*wspd^3. As this function is non-linear,
 it will give inaccurate results if used with period means.
 }
 \examples{
-wind <- array(rweibull(n = 100, shape = 2, scale = 6), c(member = 10, lat = 2, lon = 5))
-wind <- CSTools::s2dv_cube(data = wind, lat = c(40, 41), lon = 1:5,
-                          Variable = list(varName = 'sfcWind', level = 'Surface'), 
-                          Datasets = 'synthetic', when = Sys.time(),
-                          Dates = list(start = '1990-01-01 00:00:00', end = '1990-01-01 00:00:00'),
-                          source_file = NA)
-WPD <- CST_WindPowerDensity(wind)
+wind <- NULL
+wind$data <- array(rweibull(n = 100, shape = 2, scale = 6), 
+                  c(member = 10, lat = 2, lon = 5))
+wind$coords <- list(lat =  c(40, 41), lon = 1:5)
+variable <- list(varName = 'sfcWind', 
+                metadata = list(sfcWind = list(level = 'Surface')))
+wind$attrs <- list(Variable = variable, Datasets = 'synthetic', 
+                  when = Sys.time(), Dates = '1990-01-01 00:00:00')
+class(wind) <- 's2dv_cube'
+WCF <- CST_WindPowerDensity(wind)
 
 }
 \author{

@@ -13,7 +13,7 @@ MergeRefToExp(
   dates2,
   start2,
   end2,
-  time_dim = "time",
+  time_dim = "ftime",
   sdate_dim = "sdate",
   ncores = NULL
 )
@@ -21,7 +21,7 @@ MergeRefToExp(
 \arguments{
 \item{data1}{A multidimensional array with named dimensions.}
 
-\item{dates1}{a vector of dates or a multidimensional array of dates with 
+\item{dates1}{A vector of dates or a multidimensional array of dates with 
 named dimensions matching the dimensions on parameter 'data1'.}
 
 \item{start1}{A list to define the initial date of the period to select from 
@@ -48,7 +48,8 @@ the final month of the period.}
 \item{time_dim}{A character string indicating the name of the temporal 
 dimension. By default, it is set to 'ftime'. More than one dimension name 
 matching the dimensions provided in the object \code{data$data} can be 
-specified. This dimension is required to subset the data in a requested period.}
+specified. This dimension is required to subset the data in a requested 
+period.}
 
 \item{sdate_dim}{A character string indicating the name of the dimension in 
 which the initialization dates are stored.}
@@ -80,6 +81,7 @@ ref <- array(1001:1700, c(time = 350, sdate = 2))
 data <- array(1:(2*154*2), c(time = 154, sdate = 2, member= 2))
 new_data <- MergeRefToExp(data1 = ref, dates1 = ref_dates, start1 = list(21, 6),
                          end1 = list(30, 6), data2 = data, dates2 = data_dates,
-                         start2 = list(1, 7), end = list(21, 9))
+                         start2 = list(1, 7), end = list(21, 9), 
+                         time_dim = 'time')
 
 }

@@ -12,7 +12,7 @@ AccumulationExceedingThreshold(
   dates = NULL,
   start = NULL,
   end = NULL,
-  time_dim = "time",
+  time_dim = "ftime",
   na.rm = FALSE,
   ncores = NULL
 )
@@ -20,44 +20,54 @@ AccumulationExceedingThreshold(
 \arguments{
 \item{data}{A multidimensional array with named dimensions.}
 
-\item{threshold}{a multidimensional array with named dimensions in the same
-units as parameter 'data' and with the common dimensions of the element 
-'data' of the same length.}
+\item{threshold}{If only one threshold is used: it can be a multidimensional 
+array with named dimensions. It must be in the same units and with the 
+common dimensions of the same length as parameter 'data'. It can also be a
+vector with the same length of 'time_dim' from 'data' or a scalar. If we 
+want to use two thresholds: it can be a vector of two scalars, a list of 
+two vectors with the same length of 'time_dim' from 'data' or a list of 
+two multidimensional arrays with the common dimensions of the same length 
+as parameter 'data'. If two thresholds are used, parameter 'op' must be 
+also a vector of two elements.}
 
-\item{op}{An operator '>' (by default), '<', '>=' or '<='.}
+\item{op}{An operator '>' (by default), '<', '>=' or '<='. If  two thresholds
+are used it has to be a vector of a pair of two logical operators: 
+c('<', '>'), c('<', '>='), c('<=', '>'), c('<=', '>='), c('>', '<'), 
+c('>', '<='), c('>=', '<'),c('>=', '<=')).}
 
-\item{diff}{A logical value indicating whether to accumulate the difference
-between data and threshold (TRUE) or not (FALSE by default).}
+\item{diff}{A logical value indicating whether to accumulate the difference 
+between data and threshold (TRUE) or not (FALSE by default). It can only be
+TRUE if a unique threshold is used.}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named 
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A vector of dates or a multidimensional array with of dates with 
+named dimensions matching the dimensions on parameter 'data'. By default it
+is NULL, to select a period this parameter must be provided.}
 
-\item{start}{An optional parameter to defined the initial date of the period 
-to select from the data by providing a list of two elements: the initial
-date of the period and the initial month of the period. By default it is set
-to NULL and the indicator is computed using all the data provided in
+\item{start}{An optional parameter to define the initial date of the period
+to select from the data by providing a list of two elements: the initial 
+date of the period and the initial month of the period. By default it is 
+set to NULL and the indicator is computed using all the data provided in 
 \code{data}.}
 
-\item{end}{An optional parameter to defined the final date of the period to
-select from the data by providing a list of two elements: the final day of
+\item{end}{An optional parameter to define the final date of the period to 
+select from the data by providing a list of two elements: the final day of 
 the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
-\item{time_dim}{A character string indicating the name of the dimension to
-compute the indicator. By default, it is set to 'ftime'. More than one
-dimension name matching the dimensions provided in the object
-\code{data$data} can be specified.}
+\item{time_dim}{A character string indicating the name of the dimension to 
+compute the indicator. By default, it is set to 'ftime'. It can only
+indicate one time dimension.}
 
-\item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) or 
-not (FALSE).}
+\item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) 
+or not (FALSE).}
 
 \item{ncores}{An integer indicating the number of cores to use in parallel
 computation.}
 }
 \value{
 A multidimensional array with named dimensions containing the 
-indicator in the element \code{data}.
+aggregated values with dimensions of the input parameter 'data' except the 
+dimension where the indicator has been computed.
 }
 \description{
 The accumulation (sum) of a variable in the days (or time steps) that the 
@@ -75,7 +85,7 @@ function:
 \examples{
 # Assuming data is already (tasmax + tasmin)/2 - 10
 data <- array(rnorm(5 * 3 * 214 * 2, mean = 25, sd = 3),
-                   c(memb = 5, sdate = 3, time = 214, lon = 2)) 
+                   c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
 Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 

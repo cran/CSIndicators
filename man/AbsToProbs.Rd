@@ -9,7 +9,7 @@ AbsToProbs(
   dates = NULL,
   start = NULL,
   end = NULL,
-  time_dim = "time",
+  time_dim = "ftime",
   memb_dim = "member",
   sdate_dim = "sdate",
   ncores = NULL
@@ -18,9 +18,11 @@ AbsToProbs(
 \arguments{
 \item{data}{A multidimensional array with named dimensions.}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{An optional parameter containing a vector of dates or a 
+multidimensional array of dates with named dimensions matching the
+dimensions on parameter 'data'. By default it is NULL, to select a period 
+this parameter must be provided. All common dimensions with 'data' need to 
+have the same length.}
 
 \item{start}{An optional parameter to define the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -59,16 +61,19 @@ probabilities of each value in the ensemble. If multiple initializations
 Distribution Function excluding the corresponding initialization.
 }
 \examples{
-exp <- array(rnorm(216), dim = c(dataset = 1, member = 2, sdate = 3, ftime = 9, lat = 2, lon = 2))
+exp <- array(rnorm(216), dim = c(dataset = 1, member = 2, sdate = 3, 
+                                ftime = 9, lat = 2, lon = 2))
 exp_probs <- AbsToProbs(exp)
-data <- array(rnorm(5 * 2 * 61 * 1),
-             c(member = 5, sdate = 2, ftime = 61, lon = 1)) 
+data <- array(rnorm(5 * 3 * 61 * 1),
+             c(member = 5, sdate = 3, ftime = 61, lon = 1)) 
 Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
               as.Date("30-06-2000", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
               as.Date("30-06-2001", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
               as.Date("30-06-2002", format = "\%d-\%m-\%Y"), by = 'day'))
-exp_probs <- AbsToProbs(exp, start = list(21, 4), end = list(21, 6))
+dim(Dates) <- c(ftime = 61, sdate = 3)
+exp_probs <- AbsToProbs(data, dates = Dates, start = list(21, 4), 
+                       end = list(21, 6))
 
 }

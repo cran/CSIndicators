@@ -19,17 +19,24 @@ CST_TotalSpellTimeExceedingThreshold(
 \item{data}{An 's2dv_cube' object as provided by function \code{CST_Load} in 
 package CSTools.}
 
-\item{threshold}{An 's2dv_cube' object as output of a 'CST_' function in the 
-same units as parameter 'data' and with the common dimensions of the element
-'data' of the same length. A single scalar is also possible. If 
-\code{timd_dim} is in the dimension (with the same length as \code{data}), 
-the comparison will be done day by day.}
+\item{threshold}{If only one threshold is used, it can be an 's2dv_cube' 
+object or a multidimensional array with named dimensions. It must be in the 
+same units and with the common dimensions of the same length as parameter 
+'data'. It can also be a vector with the same length of 'time_dim' from 
+'data' or a scalar. If we want to use two thresholds: it can be a vector 
+of two scalars, a list of two vectors with the same length of 
+'time_dim' from 'data' or a list of two multidimensional arrays with the 
+common dimensions of the same length as parameter 'data'. If two thresholds
+are used, parameter 'op' must be also a vector of two elements.}
 
 \item{spell}{A scalar indicating the minimum length of the spell.}
 
-\item{op}{An operator '>' (by default), '<', '>=' or '<='.}
+\item{op}{An operator '>' (by default), '<', '>=' or '<='. If  two thresholds
+are used it has to be a vector of a pair of two logical operators: 
+c('<', '>'), c('<', '>='), c('<=', '>'), c('<=', '>='), c('>', '<'), 
+c('>', '<='), c('>=', '<'),c('>=', '<=')).}
 
-\item{start}{An optional parameter to defined the initial date of the period 
+\item{start}{An optional parameter to define the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
 date of the period and the initial month of the period. By default it is set
 to NULL and the indicator is computed using all the data provided in 
@@ -41,16 +48,15 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. More than one 
-dimension name matching the dimensions provided in the object 
-\code{data$data} can be specified.}
+compute the indicator. By default, it is set to 'ftime'. It can only
+indicate one time dimension.}
 
 \item{ncores}{An integer indicating the number of cores to use in parallel 
 computation.}
 }
 \value{
-An 's2dv_cube' object containing the indicator in the element 
-\code{data}.
+An 's2dv_cube' object containing the number of days that are part of a
+spell within a threshold in element \code{data}.
 }
 \description{
 The number of days (when daily data is provided) that are part of a spell 
@@ -72,12 +78,12 @@ by using function \code{AbsToProbs}. See section @examples.
 exp <- NULL
 exp$data <- array(rnorm(5 * 3 * 214 * 2)*23,
                  c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
-exp$Dates$start <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-                      as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-                  seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-                      as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-                  seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-                      as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+                    seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+                        as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
 class(exp) <- 's2dv_cube'
 TTSET <- CST_TotalSpellTimeExceedingThreshold(exp, threshold = 23, spell = 3)
 

@@ -59,50 +59,45 @@
 #'exp_probs <- CST_QThreshold(exp, threshold)
 #'exp$data <- array(rnorm(5 * 3 * 214 * 2),
 #'                    c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
-#'exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
-#'                    seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
-#'                    seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
 #'exp_probs <- CST_QThreshold(exp, threshold)
 #' 
 #'@import multiApply
 #'@importFrom ClimProjDiags Subset
 #'@export
 CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
-                           time_dim = 'ftime', memb_dim = 'member', sdate_dim = 'sdate',
-                           ncores = NULL) {
-    if (!inherits(data, 's2dv_cube')) {
-    stop("Parameter 'data' must be of the class 's2dv_cube', ",
-         "as output by CSTools::CST_Load.")
+                           time_dim = 'ftime', memb_dim = 'member', 
+                           sdate_dim = 'sdate', ncores = NULL) {
+  # Check 's2dv_cube'
+  if (!inherits(data, 's2dv_cube')) {
+    stop("Parameter 'data' must be of the class 's2dv_cube'.")
   }
-  # when subsetting is needed, dimensions are also needed:
+  # Dates subset
   if (!is.null(start) && !is.null(end)) {
-    if (is.null(dim(data$Dates$start))) {
-      if (length(data$Dates$start) != dim(data$data)[time_dim]) {
-        if (length(data$Dates$start) == 
-            prod(dim(data$data)[time_dim] * dim(data$data)[sdate_dim])) {
-          dim(data$Dates$start) <- c(dim(data$data)[time_dim],
-                                     dim(data$data)[sdate_dim])
-        } else {
-          warning("Dimensions in 'data' element 'Dates$start' are missed and ",
-                  "all data would be used.")
-        }
-      }
+    if (is.null(dim(data$attrs$Dates))) {
+      warning("Dimensions in 'data' element 'attrs$Dates' are missed and ",
+              "all data would be used.")
+      start <- NULL
+      end <- NULL
     }
   }
   if (inherits(threshold, 's2dv_cube')) {
     threshold <- threshold$data
   }
-  probs <- QThreshold(data$data, threshold, data$Dates[[1]], start, end,
-                      time_dim = time_dim, memb_dim = memb_dim,
+  probs <- QThreshold(data$data, threshold, dates = data$attrs$Dates, 
+                      start, end, time_dim = time_dim, memb_dim = memb_dim,
                       sdate_dim = sdate_dim, ncores = ncores)
   data$data <- probs
   if (!is.null(start) && !is.null(end)) {
-     data$Dates <- SelectPeriodOnDates(dates = data$Dates[[1]],
-                                start = start, end = end, 
-                                time_dim = time_dim, ncores = ncores)
+    data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
+                                            start = start, end = end, 
+                                            time_dim = time_dim, 
+                                            ncores = ncores)
   }
   return(data)
 }
@@ -178,7 +173,6 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
   if (!is.numeric(data)) {
     stop("Parameter 'data' must be numeric.")
   }
-  
   if (!is.array(data)) {
     dim(data) <- c(length(data), 1)
     names(dim(data)) <- c(memb_dim, sdate_dim)

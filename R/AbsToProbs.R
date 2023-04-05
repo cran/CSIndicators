@@ -38,47 +38,44 @@
 #'exp_probs <- CST_AbsToProbs(exp)
 #'exp$data <- array(rnorm(5 * 3 * 214 * 2),
 #'                  c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
-#'exp$Dates[[1]] <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
-#'                    seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
-#'                    seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
-#'                        as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
-#'exp_probs <- CST_AbsToProbs(exp, start = list(21, 4), end = list(21, 6))
-#'
+#'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(exp$attrs$Dates) <- c(ftime = 214, sdate = 3)
+#'exp_probs <- CST_AbsToProbs(data = exp, start = list(21, 4), end = list(21, 6))
 #'@import multiApply
 #'@importFrom stats ecdf
 #'@export
 CST_AbsToProbs <- function(data, start = NULL, end = NULL,
                            time_dim = 'ftime', memb_dim = 'member',
                            sdate_dim = 'sdate', ncores = NULL) {
+  # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
-    stop("Parameter 'data' must be of the class 's2dv_cube', ",
-         "as output by CSTools::CST_Load.")
+    stop("Parameter 'data' must be of the class 's2dv_cube'.")
   }
-  # when subsetting is needed, dimensions are also needed:
+  # Dates subset
   if (!is.null(start) && !is.null(end)) {
-    if (is.null(dim(data$Dates$start))) {
-      if (length(data$Dates$start) != dim(data$data)[time_dim]) {
-        if (length(data$Dates$start) == 
-            prod(dim(data$data)[time_dim] * dim(data$data)[sdate_dim])) {
-          dim(data$Dates$start) <- c(dim(data$data)[time_dim],
-                                     dim(data$data)[sdate_dim])
-        } else {
-          warning("Dimensions in 'data' element 'Dates$start' are missed and ",
-                  "all data would be used.")
-        }
-      }
+    if (is.null(dim(data$attrs$Dates))) {
+      warning("Dimensions in 'data' element 'attrs$Dates' are missed and ",
+              "all data would be used.")
+      start <- NULL
+      end <- NULL
     }
   }
-  probs <- AbsToProbs(data$data, data$Dates[[1]], start, end,
-                      time_dim = time_dim, memb_dim = memb_dim,
-                      sdate_dim = sdate_dim, ncores = ncores)
+
+  probs <- AbsToProbs(data = data$data, dates = data$attrs$Dates, 
+                      start = start, end = end, time_dim = time_dim, 
+                      memb_dim = memb_dim, sdate_dim = sdate_dim, 
+                      ncores = ncores)
   data$data <- probs
   if (!is.null(start) && !is.null(end)) {
-     data$Dates <- SelectPeriodOnDates(dates = data$Dates[[1]],
-                                start = start, end = end, 
-                                time_dim = time_dim, ncores = ncores)
+    data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
+                                            start = start, end = end, 
+                                            time_dim = time_dim, 
+                                            ncores = ncores)
   }
   return(data)
 }
@@ -90,9 +87,11 @@ CST_AbsToProbs <- function(data, start = NULL, end = NULL,
 #'Distribution Function excluding the corresponding initialization. 
 #'
 #'@param data A multidimensional array with named dimensions.
-#'@param dates A vector of dates or a multidimensional array of dates with named
-#'  dimensions matching the dimensions on parameter 'data'. By default it is 
-#'  NULL, to select a period this parameter must be provided.
+#'@param dates An optional parameter containing a vector of dates or a 
+#'  multidimensional array of dates with named dimensions matching the
+#'  dimensions on parameter 'data'. By default it is NULL, to select a period 
+#'  this parameter must be provided. All common dimensions with 'data' need to 
+#'  have the same length.
 #'@param start An optional parameter to define the initial date of the period 
 #'  to select from the data by providing a list of two elements: the initial 
 #'  date of the period and the initial month of the period. By default it is set
@@ -118,48 +117,76 @@ CST_AbsToProbs <- function(data, start = NULL, end = NULL,
 #'probabilites in the element \code{data}.
 #'
 #'@examples
-#'exp <- array(rnorm(216), dim = c(dataset = 1, member = 2, sdate = 3, ftime = 9, lat = 2, lon = 2))
+#'exp <- array(rnorm(216), dim = c(dataset = 1, member = 2, sdate = 3, 
+#'                                 ftime = 9, lat = 2, lon = 2))
 #'exp_probs <- AbsToProbs(exp)
-#'data <- array(rnorm(5 * 2 * 61 * 1),
-#'              c(member = 5, sdate = 2, ftime = 61, lon = 1)) 
+#'data <- array(rnorm(5 * 3 * 61 * 1),
+#'              c(member = 5, sdate = 3, ftime = 61, lon = 1)) 
 #'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'               as.Date("30-06-2000", format = "%d-%m-%Y"), by = 'day'),
 #'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'               as.Date("30-06-2001", format = "%d-%m-%Y"), by = 'day'),
 #'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'               as.Date("30-06-2002", format = "%d-%m-%Y"), by = 'day'))
-#'exp_probs <- AbsToProbs(exp, start = list(21, 4), end = list(21, 6))
+#'dim(Dates) <- c(ftime = 61, sdate = 3)
+#'exp_probs <- AbsToProbs(data, dates = Dates, start = list(21, 4), 
+#'                        end = list(21, 6))
 #'
 #'@import multiApply
 #'@importFrom stats ecdf
 #'@export
-AbsToProbs <- function(data, dates = NULL, start = NULL, end = NULL, time_dim = 'time',
-                       memb_dim = 'member', 
+AbsToProbs <- function(data, dates = NULL, start = NULL, end = NULL,
+                       time_dim = 'ftime', memb_dim = 'member', 
                        sdate_dim = 'sdate', ncores = NULL) {
-  if (is.null(data)) {
-    stop("Parameter 'data' cannot be NULL.")
-  }
+  # data
   if (!is.numeric(data)) {
     stop("Parameter 'data' must be numeric.")
   }
+  data_is_array <- TRUE
   if (!is.array(data)) {
+    data_is_array <- FALSE
     dim(data) <- c(length(data), 1)
     names(dim(data)) <- c(memb_dim, sdate_dim)
     if (!is.null(start) && !is.null(end)) {
-      if (!any(c(is.list(start), is.list(end)))) {
-        stop("Parameter 'start' and 'end' must be lists indicating the ",
-             "day and the month of the period start and end.")
-      }
-      data <- SelectPeriodOnData(data, dates, start, end, 
-                                 time_dim = time_dim, ncores = ncores)
+      warning("Parameter 'data' doesn't have dimension names and all ", 
+              "data will be used.")
+      start <- NULL
+      end <- NULL
     }
   }
-  probs <- Apply(list(data), target_dims = c(memb_dim, sdate_dim), fun = .abstoprobs,
+  # dates subset
+  if (!is.null(start) && !is.null(end)) {
+    if (!all(c(is.list(start), is.list(end)))) {
+      stop("Parameter 'start' and 'end' must be lists indicating the ",
+           "day and the month of the period start and end.")
+    }
+    if (is.null(dates)) {
+      warning("Parameter 'dates' is not provided and all data will be used.")
+    } else {
+      if (is.null(dim(dates))) {
+        warning("Parameter 'dates' doesn't have dimension names and all ", 
+                "data will be used.")
+      } else {
+        data <- SelectPeriodOnData(data, dates, start, end, 
+                                   time_dim = time_dim, ncores = ncores)
+      }
+    }
+  }
+  probs <- Apply(list(data), target_dims = c(memb_dim, sdate_dim), 
+                 fun = .abstoprobs,
                  ncores = ncores)$output1
+  if (!data_is_array) {
+    dim(probs) <- NULL
+  } else {
+    pos <- match(names(dim(data)), names(dim(probs)))
+    probs <- aperm(probs, pos)
+  }
+
   return(probs)
 }
+
 .abstoprobs <- function(data) {
-  if (dim(data)[2] > 1 ) { # Several sdates 
+  if (dim(data)[2] > 1) { # Several sdates 
     qres <- unlist(
       lapply(1:(dim(data)[1]), function(x) { # dim 1: member
               lapply(1:(dim(data)[2]), function(y) { # dim 2: sdate

@@ -84,7 +84,6 @@ c(prlr_exp, prlr_obs) %<-% CST_Load(var = 'prlr',
                                     grid = "r1440x721", method = 'bicubic')
 ```
 
-
 The output contains data and metadata for the experiment and the observations. The elements `prlr_exp$data` and `prlr_obs$data` have dimensions:
 
 
@@ -97,9 +96,7 @@ dim(prlr_obs$data)
 #      1       1       4     214       4       4
 ```
 
-
 To compute **SprR** of forecast and observation, we can run:
-
 
 ```
 SprR_exp <- CST_PeriodAccumulation(prlr_exp, start = list(21, 4), end = list(21, 6))
@@ -124,7 +121,7 @@ dim(SprR_obs$data)
 The forecast SprR for the 1st member from 2013-2016 of the 1st grid point in mm are:
 
 ```
-SprR_exp$data[1,1,,1,1] * 86400 * 1000
+SprR_exp$data[1, 1, , 1, 1] * 86400 * 1000
 #[1]  93.23205 230.41904 194.01412 226.52614
 ```
 
@@ -140,7 +137,7 @@ HarvestR_obs <- CST_PeriodAccumulation(prlr_obs, start = list(21, 8), end = list
 The forecast HarvestR for the 1st member from 2013-2016 of the 1st grid point in mm are:
 
 ```
-HarvestR_exp$data[1,1,,1,1] * 86400 * 1000
+HarvestR_exp$data[1, 1, , 1, 1] * 86400 * 1000
 #[1]  52.30026  42.88068 156.87961  32.18579
 ```
 
@@ -159,7 +156,7 @@ To plot the map of ensemble-mean bias of HarvestR forecast, run
 cols <- c('#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#d1e5f0', 
           '#92c5de', '#4393c3', '#2166ac')
 
-PlotEquiMap(Bias[1,,], lon = prlr_obs$lon, lat = prlr_obs$lat,
+PlotEquiMap(Bias[1, , ], lon = prlr_obs$coords$lon, lat = prlr_obs$coords$lat,
             intylat = 1, intxlon = 1, width = 6, height = 6, 
             filled.continents = FALSE, units = 'mm', title_scale = .8,
             axes_label_scale = 1, axes_tick_scale = 1, col_inf = cols[1], 
@@ -170,7 +167,7 @@ PlotEquiMap(Bias[1,,], lon = prlr_obs$lon, lat = prlr_obs$lat,
 ```
 You will see the following maps of HarvestR bias in 2013.
 
-<img src="vignettes/figures/HarvestR_Bias_2013-1.png" width="30%"/>
+![HarvestR_Bias_2013](./Figures/HarvestR_Bias_2013-1.png)
 
 In 2013, the ensemble-mean SEAS5 seasonal forecast of HarvestR is underestimated by up to 60 mm over Douro Valley region (the central four grid points). 
 
@@ -258,7 +255,7 @@ Here, we plot the 2013-2016 mean climatology of ERA5 GST by running
 GST_Clim <- MeanDims(drop(GST_obs$data), 'sdate')
 
 cols <- c('#ffffd4','#fee391','#fec44f','#fe9929','#ec7014','#cc4c02','#8c2d04')
-PlotEquiMap(GST_Clim, lon = tas_obs$lon, lat = tas_obs$lat,
+PlotEquiMap(GST_Clim, lon = tas_obs$coords$lon, lat = tas_obs$coords$lat,
             intylat = 1, intxlon = 1, width = 6, height = 6, 
             filled.continents = FALSE, units = '°C', title_scale = .8,
             axes_label_scale = 1, axes_tick_scale = 1, col_inf = cols[1],
@@ -270,7 +267,7 @@ PlotEquiMap(GST_Clim, lon = tas_obs$lon, lat = tas_obs$lat,
 
 The ERA5 GST climatology is shown as below.
 
-<img src="vignettes/figures/GST_ERA5_Climatology-1.png" width="30%"/>
+![ERA5 GST Climatology](./Figures/GST_ERA5_Climatology-1.png)
 
 ERA5 GST ranges from 17-18.5°C over the Douro Valley region for the period from 2013-2016 as shown in the figure.
 
@@ -363,7 +360,8 @@ SU35_exp_BC_Y2016 <- MeanDims(SU35_exp_BC[, 4, , ], 'member')
 cols <- c("#fee5d9", "#fcae91", "#fb6a4a", "#de2d26","#a50f15")
 
 toptitle <- 'ERA5 SU35 forecast in 2016'
-PlotEquiMap(SU35_obs_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+PlotEquiMap(SU35_obs_Y2016, 
+            lon = tasmax_obs$coords$lon, lat = tasmax_obs$coords$lat, 
             intylat = 1, intxlon = 1, width = 6, height = 6,
             filled.continents = FALSE, units = 'day', title_scale = .8, 
             axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
@@ -373,7 +371,8 @@ PlotEquiMap(SU35_obs_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
             bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
 
 toptitle <- 'SU35 forecast in 2016'
-PlotEquiMap(SU35_exp_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+PlotEquiMap(SU35_exp_Y2016, 
+            lon = tasmax_obs$coords$lon, lat = tasmax_obs$coords$lat, 
             intylat = 1, intxlon = 1, width = 6, height = 6,
             filled.continents = FALSE, units = 'day', title_scale = .8, 
             axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
@@ -383,7 +382,8 @@ PlotEquiMap(SU35_exp_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
             bar_extra_margin = c(0, 0, 0, 0), units_scale = 2)
 
 toptitle <- 'Bias-adjusted SU35 forecast in 2016'
-PlotEquiMap(SU35_exp_BC_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+PlotEquiMap(SU35_exp_BC_Y2016, 
+            lon = tasmax_obs$coords$lon, lat = tasmax_obs$coords$lat, 
             intylat = 1, intxlon = 1, width = 6, height = 6,
             filled.continents = FALSE, units = 'day', title_scale = .8, 
             axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
@@ -395,9 +395,9 @@ PlotEquiMap(SU35_exp_BC_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
 You can see the figure as below.
 
 
-<img src="vignettes/figures/SU35_ERA5_Y2016-1.png" width="30%"/>
-<img src="vignettes/figures/SU35_SEAS5_Y2016-1.png" width="30%"/>
-<img src="vignettes/figures/SU35_SEAS5_BC_Y2016-1.png" width="30%"/>
+![SU35_ERA5_Y2016](./Figures/SU35_ERA5_Y2016-1.png)
+![SU35_SEAS5_Y2016](./Figures/SU35_SEAS5_Y2016-1.png)
+![SU35_SEAS5_BC_Y2016](./Figures/SU35_SEAS5_BC_Y2016-1.png)
 
 As seen above, the bias-adjusted SU35 forecasts are much closer to the ERA5 results, although differences remain.
 
@@ -429,20 +429,22 @@ obs_percentile <- drop(obs_percentile)
 After translating both forecasts and observations into probabilities, the comparison can then be done by running
 
 ```
-SU35_exp_Percentile <- TotalTimeExceedingThreshold(S5txP, threshold = obs_percentile, time_dim = 'ftime')
+SU35_exp_Percentile <- TotalTimeExceedingThreshold(S5txP, threshold = obs_percentile, 
+                                                   time_dim = 'ftime')
 ```
 
 Compute the same ensemble-mean SU35 **with percentile adjustment** in 2016 by running
 
 ```
-SU35_exp_per_Y2016 <- MeanDims(SU35_exp_Percentile[, 4, , ], 'member')
+SU35_exp_per_Y2016 <- MeanDims(SU35_exp_Percentile[4, , , ], 'member')
 ```
 
 Plot the same map for comparison
 
 ```
 toptitle <- 'SU35 forecast with percentile adjustment in 2016'
-PlotEquiMap(SU35_exp_per_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
+PlotEquiMap(SU35_exp_per_Y2016, 
+            lon = tasmax_obs$coords$lon, lat = tasmax_obs$coords$lat,
             intylat = 1, intxlon = 1, width = 6, height = 6,
             filled.continents = FALSE, units = 'day', title_scale = .8,
             axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1),
@@ -452,9 +454,7 @@ PlotEquiMap(SU35_exp_per_Y2016, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
             bar_extra_margin = c(0, 0, 0, 0), units_scale = 2) 
 
 ```
-
-
-<img src="vignettes/figures/SU35_Percentile_SEAS5_Y2016-1.png" width="30%"/>
+![SU35_Percentile_SEAS5_Y2016](./Figures/SU35_Percentile_SEAS5_Y2016-1.png)
 
 As seen in the figure above, applying the percentile adjustment seems to implicitly adjust certain extent of bias which was observed in the non-bias-adjusted SEAS5 forecast.
 
@@ -501,7 +501,7 @@ To plot the map of correlation coefficient of GDD for the 2013-2016 period.
 ```
 cols <- c("#f7fcf5", "#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476")
 toptitle <- '2013-2016 correlation coefficient of GDD'
-PlotEquiMap(GDD_Corr, lon = tas_obs$lon, lat = tas_obs$lat, 
+PlotEquiMap(GDD_Corr, lon = tas_obs$coords$lon, lat = tas_obs$coords$lat, 
             intylat = 1, intxlon = 1, width = 6, height = 6, 
             filled.continents = FALSE, units = 'correlation', 
             title_scale = .8, axes_label_scale = 1, axes_tick_scale = 1, 
@@ -512,7 +512,7 @@ PlotEquiMap(GDD_Corr, lon = tas_obs$lon, lat = tas_obs$lat,
 
 The map of correlation coefficient for the 2013-2016 period is shown as below.
 
-<img src="vignettes/figures/GDD_SEAS5_Corr_Y13-16-1.png" width="30%"/>
+![GDD_SEAS5_Corr_Y13-16](./Figures/GDD_SEAS5_Corr_Y13-16-1.png)
 
 The 2013-2016 correlation coefficients of the SEAS5 forecasts of GDD in reference with ERA5 reanalysis over Douro Valley range between 0.6 and 0.8.
 
@@ -572,7 +572,7 @@ Plot the map of WSDI FRPSS for the period from 2013-2016
 cols <- c("#edf8fb", "#ccece6", "#99d8c9", "#66c2a4")
 toptitle <- 'SEAS5 WSDI FRPSS (2013-2016)'
 
-PlotEquiMap(WSDI_FRPSS, lon = tasmax_obs$lon, lat = tasmax_obs$lat, 
+PlotEquiMap(WSDI_FRPSS, lon = tasmax_obs$coords$lon, lat = tasmax_obs$coords$lat, 
             intylat = 1, intxlon = 1, width = 6, height = 6,
             filled.continents = FALSE, units = 'FRPSS', title_scale = .8, 
             axes_label_scale = 1, axes_tick_scale = 1, margin_scale = c(1, 1, 1, 1), 
@@ -583,7 +583,8 @@ PlotEquiMap(WSDI_FRPSS, lon = tasmax_obs$lon, lat = tasmax_obs$lat,
 
 The FRPSS map for 2013-2016 SEAS WSDI is shown as below.
 
-<img src="vignettes/figures/WSDI_SEAS5_FRPSS_Y13-16-1.png" width="30%"/>
+![WSDI_SEAS5_FRPSS_Y13-16](./Figures/WSDI_SEAS5_FRPSS_Y13-16-1.png)
+
 
 As seen in the map, the FRPSS in the eastern part of Douro Valley falls in 0.6-0.9, which are good enough to be useful when compared to observational climatology.
 

@@ -58,18 +58,22 @@ different power curves that span different IEC classes can be selected (see
 below).
 }
 \examples{
-wind <- array(rweibull(n = 100, shape = 2, scale = 6), c(member = 10, lat = 2, lon = 5))
-wind <- CSTools::s2dv_cube(data = wind, lat = c(40, 41), lon = 1:5,
-                          Variable = list(varName = 'sfcWind', level = 'Surface'), 
-                          Datasets = 'synthetic', when = Sys.time(),
-                          Dates = list(start = '1990-01-01 00:00:00', end = '1990-01-01 00:00:00'),
-                          source_file = NA)
+wind <- NULL
+wind$data <- array(rweibull(n = 100, shape = 2, scale = 6), 
+                  c(member = 10, lat = 2, lon = 5))
+wind$coords <- list(lat =  c(40, 41), lon = 1:5)
+variable <- list(varName = 'sfcWind', 
+                metadata = list(sfcWind = list(level = 'Surface')))
+wind$attrs <- list(Variable = variable, Datasets = 'synthetic', 
+                  when = Sys.time(), Dates = '1990-01-01 00:00:00')
+class(wind) <- 's2dv_cube'
 WCF <- CST_WindCapacityFactor(wind, IEC_class = "III")
 
 }
 \references{
-Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, F. J. (2019). 
-Seasonal forecasts of wind power generation. Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135
+Lledó, Ll., Torralba, V., Soret, A., Ramon, J., & Doblas-Reyes, 
+F. J. (2019). Seasonal forecasts of wind power generation. 
+Renewable Energy, 143, 91–100. https://doi.org/10.1016/j.renene.2019.04.135
 
 International Standard IEC 61400-1 (third ed.) (2005)
 }

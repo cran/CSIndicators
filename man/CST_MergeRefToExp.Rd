@@ -74,14 +74,14 @@ data_dates <- c(seq(as.Date("01-07-1993", "\%d-\%m-\%Y", tz = 'UTC'),
 dim(data_dates) <- c(ftime = 154, sdate = 2)
 data <- NULL
 data$data <- array(1:(2*154*2), c(ftime = 154, sdate = 2, member= 2))
-data$Dates$start <- data_dates
+data$attrs$Dates<- data_dates
 class(data) <- 's2dv_cube'
 ref_dates <- seq(as.Date("01-01-1993", "\%d-\%m-\%Y", tz = 'UTC'),
                 as.Date("01-12-1994","\%d-\%m-\%Y", tz = 'UTC'), "day")
 dim(ref_dates) <- c(ftime = 350, sdate = 2)
 ref <- NULL
 ref$data <- array(1001:1700, c(ftime = 350, sdate = 2))
-ref$Dates$start <- ref_dates
+ref$attrs$Dates <- ref_dates
 class(ref) <- 's2dv_cube'
 new_data <- CST_MergeRefToExp(data1 = ref, data2 = data, 
                              start1 = list(21, 6), end1 = list(30, 6),
