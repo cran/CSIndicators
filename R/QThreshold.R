@@ -68,7 +68,6 @@
 #'exp_probs <- CST_QThreshold(exp, threshold)
 #' 
 #'@import multiApply
-#'@importFrom ClimProjDiags Subset
 #'@export
 CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
                            time_dim = 'ftime', memb_dim = 'member', 
@@ -162,11 +161,12 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
 #'thres_q <- QThreshold(data, threshold)
 #' 
 #'@import multiApply
-#'@importFrom ClimProjDiags Subset
 #'@export
 QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
                        time_dim = 'time', memb_dim = 'member', sdate_dim = 'sdate',
                        ncores = NULL) {
+  # Initial checks
+  ## data
   if (is.null(data)) {
     stop("Parameter 'data' cannot be NULL.")
   }
@@ -177,6 +177,10 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
     dim(data) <- c(length(data), 1)
     names(dim(data)) <- c(memb_dim, sdate_dim)
   }
+  if (is.null(names(dim(data)))) {
+    stop("Parameter 'data' must have named dimensions.")
+  }
+  ## threshold
   if (is.null(threshold)) {
       stop("Parameter 'threshold' cannot be NULL.")
   }
@@ -189,8 +193,8 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
   } else if (length(threshold) == 1) {
     dim(threshold) <- NULL
   }
-  if (is.null(names(dim(data)))) {
-    stop("Parameter 'data' must have named dimensions.")
+  if (sdate_dim %in% names(dim(threshold))) {
+    stop("Parameter threshold cannot have dimension 'sdate_dim'.") 
   }
   if (is.null(names(dim(threshold))) && length(threshold) > 1) {
     stop("Parameter 'threshold' must have named dimensions.")
@@ -206,9 +210,9 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
       }
       if (time_dim %in% names(dim(threshold))) {
         if (dim(threshold)[time_dim] == dim(data)[time_dim]) {
-          if (!is.null(dim(dates)) && sdate_dim %in% dim(dates)) {
-            dates_thres <- Subset(dates, along = sdate_dim, indices = 1) 
-            threshold <- SelectPeriodOnData(threshold, dates_thres, start, end,
+          if (!is.null(dim(dates)) && sdate_dim %in% names(dim(dates))) {
+            dates_thres <- .arraysubset(dates, dim = sdate_dim, value = 1)
+            threshold <- SelectPeriodOnData(data = threshold, dates = dates_thres, start, end,
                                             time_dim = time_dim, ncores = ncores)
           } else {
             threshold <- SelectPeriodOnData(threshold, dates, start, end,
@@ -231,9 +235,7 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
     }
   } else {
     target_thres <- NULL
-    if (sdate_dim %in% names(dim(threshold))) {
-      stop("Parameter threshold cannot have dimension 'sdate_dim'.") 
-    }
+
     if (memb_dim %in% names(dim(data))) {
       if (memb_dim %in% names(dim(threshold))) {
       # comparison member by member

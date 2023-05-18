@@ -24,6 +24,34 @@
   return(position)
 }
 
+# Function to subset dimension indices of an array
+.arraysubset <- function(x, dim, value, drop = FALSE) { 
+  indices <- rep(list(bquote()), length(dim(x)))
+  if (is.character(dim)) {
+    dim <- which(names(dim(x)) %in% dim)
+  }
+  indices[dim] <- value
+  call <- as.call(c(list(as.name("["), quote(x)), indices, drop = drop))
+  eval(call)
+}
+
+# Function to insert a dimension in an array
+.insertdim <- function(data, posdim, lendim, name = NULL) {
+  names(lendim) <- name
+  data <- array(data, dim = c(dim(data), lendim))
+  ## Reorder dimension
+  if (posdim == 1) {
+    order <- c(length(dim(data)), 1:(length(dim(data)) - 1))
+    data <- aperm(data, order)
+  } else if (posdim == length(dim(data))) {  # last dim
+
+  } else { # middle dim
+    order <- c(1:(posdim - 1), length(dim(data)), posdim:(length(dim(data)) - 1))
+    data <- aperm(data, order)
+  }
+  return(data)
+}
+
 
 #=======================
 # Read a powercurve file

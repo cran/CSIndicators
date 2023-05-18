@@ -20,7 +20,6 @@
 #'the vector dates during the period requested from \code{start} to \code{end}.
 #'
 #'@import multiApply
-#'@importFrom s2dv Reorder
 #'
 #'@examples
 #'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
@@ -66,7 +65,8 @@ SelectPeriodOnDates <- function(dates, start, end,
     res <- as.POSIXct(res, origin = '1970-01-01', tz = 'UTC')  
   } else {
     if (!all(names(dim(res)) == names(dim(dates)))) {
-      res <- s2dv::Reorder(res, names(dim(dates)))
+      pos <- match(names(dim(dates)), names(dim(res)))
+      res <- aperm(res, pos)
     }  
     res <- dates[res]
     dim(res) <- dims

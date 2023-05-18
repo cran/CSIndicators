@@ -100,7 +100,6 @@ CST_SelectPeriodOnData <- function(data, start, end, time_dim = 'ftime',
 #'dim(Dates) <- c(ftime = 214, sdate = 3)
 #'Period <- SelectPeriodOnData(data, Dates, start = list(21, 6), end = list(21, 9))
 #'@import multiApply
-#'@importFrom ClimProjDiags Subset
 #'@export
 SelectPeriodOnData <- function(data, dates, start, end, 
                                time_dim = 'ftime', ncores = NULL) {
@@ -150,12 +149,11 @@ SelectPeriodOnData <- function(data, dates, start, end,
   names_data <- sort(names(dim(data)))
   if (!all(names_res %in% names_data)) {
     dim_remove <- names_res[-which(names_res %in% names_data)]
-    indices <- as.list(rep(1, length(dim_remove)))
-    res <- Subset(res, along = dim_remove, indices, drop = 'selected')
+    res <- .arraysubset(res, dim = dim_remove, value = 1)
+    dim(res) <- dim(res)[-which(names(dim(res)) %in% dim_remove)]
   }
 
   pos <- match(names(dim(data)), names(dim(res)))
   res <- aperm(res, pos)
   return(res)
 }
-

@@ -170,7 +170,6 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
 #'GDD <- AccumulationExceedingThreshold(data, threshold = 0, start = list(1, 4),
 #'                                      end = list(31, 10))
 #'@import multiApply
-#'@importFrom s2dv Reorder
 #'@export
 AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FALSE,
                                            dates = NULL, start = NULL, end = NULL,

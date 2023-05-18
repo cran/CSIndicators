@@ -60,8 +60,6 @@
 #'                              start2 = list(1, 7), end2 = list(21, 9))
 #' 
 #'@import multiApply
-#'@importFrom ClimProjDiags Subset
-#'@importFrom s2dv InsertDim
 #'@export
 CST_MergeRefToExp <- function(data1, data2, start1, end1, start2, end2,
                               time_dim = 'ftime', sdate_dim = 'sdate',
@@ -201,8 +199,6 @@ CST_MergeRefToExp <- function(data1, data2, start1, end1, start2, end2,
 #'                          time_dim = 'time')
 #'
 #'@import multiApply
-#'@importFrom ClimProjDiags Subset
-#'@importFrom s2dv InsertDim
 #'@export
 MergeRefToExp <- function(data1, dates1, start1, end1, data2, dates2, start2, 
                           end2, time_dim = 'ftime', sdate_dim = 'sdate',
@@ -252,8 +248,8 @@ MergeRefToExp <- function(data1, dates1, start1, end1, data2, dates2, start2,
     dif_dims <- which(names(dim(data2)) %in% names(dim(data1)) == FALSE)
     if (length(dif_dims) > 0) {
       for (i in dif_dims) {
-        data1 <- InsertDim(data1, posdim = i, lendim = dim(data2)[i], 
-                           name = names(dim(data2))[i])
+        data1 <- .insertdim(data1, posdim = i, lendim = dim(data2)[i], 
+                            name = names(dim(data2))[i])
       }
     }
   }
@@ -262,8 +258,8 @@ MergeRefToExp <- function(data1, dates1, start1, end1, data2, dates2, start2,
     dif_dims <- which(names(dim(data1)) %in% names(dim(data2)) == FALSE)
     if (length(dif_dims) > 0) {
       for (i in dif_dims) {
-        data2 <- InsertDim(data2, posdim = i, lendim = dim(data1)[i],
-                           name = names(dim(data1))[i])
+        data2 <- .insertdim(data2, posdim = i, lendim = dim(data1)[i],
+                            name = names(dim(data1))[i])
       }
     }
   }
