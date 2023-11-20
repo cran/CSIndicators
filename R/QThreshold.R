@@ -22,8 +22,8 @@
 #'        the sample used must be especified in sdate_dim parameter.}
 #'}
 #'
-#'@param data An 's2dv_cube' object as provided function \code{CST_Load} in 
-#'  package CSTools.
+#'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
+#'  \code{CST_Load} in package CSTools.
 #'@param threshold An 's2dv_cube' object as output of a 'CST_' function in the 
 #'  same units as parameter 'data' and with the common dimensions of the element
 #'  'data' of the same length. A single scalar is also possible.
@@ -37,7 +37,7 @@
 #'  the period and the final month of the period. By default it is set to NULL 
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the temporal 
-#'  dimension. By default, it is set to 'ftime'. More than one dimension name 
+#'  dimension. By default, it is set to 'time'. More than one dimension name 
 #'  matching the dimensions provided in the object \code{data$data} can be 
 #'  specified. This dimension is required to subset the data in a requested 
 #'  period.
@@ -54,23 +54,27 @@
 #'@examples
 #'threshold <- 26
 #'exp <- NULL
-#'exp$data <- array(abs(rnorm(112)*26), dim = c(member = 7, sdate = 8, ftime = 2))
+#'exp$data <- array(abs(rnorm(112)*26), dim = c(member = 7, sdate = 8, time = 2))
 #'class(exp) <- 's2dv_cube'
 #'exp_probs <- CST_QThreshold(exp, threshold)
-#'exp$data <- array(rnorm(5 * 3 * 214 * 2),
-#'                    c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+#'
+#'exp$data <- array(abs(rnorm(5 * 3 * 214 * 2)*50),
+#'                  c(member = 5, sdate = 3, time = 214, lon = 2)) 
 #'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
-#'exp_probs <- CST_QThreshold(exp, threshold)
+#'dim(exp$attrs$Dates) <- c(sdate = 3, time = 214)
+#'class(exp) <- 's2dv_cube'
+#'exp_probs <- CST_QThreshold(exp, threshold, start = list(21, 4), 
+#'                            end = list(21, 6))
 #' 
 #'@import multiApply
 #'@export
 CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
-                           time_dim = 'ftime', memb_dim = 'member', 
+                           time_dim = 'time', memb_dim = 'member', 
                            sdate_dim = 'sdate', ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
@@ -92,6 +96,8 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
                       start, end, time_dim = time_dim, memb_dim = memb_dim,
                       sdate_dim = sdate_dim, ncores = ncores)
   data$data <- probs
+  data$dims <- dim(probs)
+  
   if (!is.null(start) && !is.null(end)) {
     data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
                                             start = start, end = end, 
@@ -127,9 +133,9 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
 #'@param threshold A multidimensional array with named dimensions in the same 
 #'  units as parameter 'data' and with the common dimensions of the element 
 #'  'data' of the same length.
-#'@param dates A vector of dates or a multidimensional array of dates with named
-#'  dimensions matching the dimensions on parameter 'data'. By default it is 
-#'  NULL, to select a period this parameter must be provided.
+#'@param dates A multidimensional array of dates with named dimensions matching 
+#'  the temporal dimensions on parameter 'data'. By default it is NULL, to  
+#'  select aperiod this parameter must be provided.
 #'@param start An optional parameter to defined the initial date of the period 
 #'  to select from the data by providing a list of two elements: the initial 
 #'  date of the period and the initial month of the period. By default it is set
@@ -140,7 +146,7 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
 #'  the period and the final month of the period. By default it is set to NULL 
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the temporal 
-#'  dimension. By default, it is set to 'ftime'. More than one dimension name 
+#'  dimension. By default, it is set to 'time'. More than one dimension name 
 #'  matching the dimensions provided in the object \code{data$data} can be 
 #'  specified. This dimension is required to subset the data in a requested 
 #'  period.
@@ -157,14 +163,25 @@ CST_QThreshold <- function(data, threshold, start = NULL, end = NULL,
 #'@examples
 #'threshold = 25
 #'data <- array(rnorm(5 * 3 * 20 * 2, mean = 26), 
-#'              c(member = 5, sdate = 3, time = 20, lon = 2)) 
-#'thres_q <- QThreshold(data, threshold)
+#'              c(member = 5, sdate = 3, time = 214, lon = 2)) 
+#'
+#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(sdate = 3, time = 214)
+#'
+#'thres_q <- QThreshold(data, threshold, dates = Dates, time_dim = 'time',
+#'                      start = list(21, 4), end = list(21, 6))
 #' 
 #'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
-                       time_dim = 'time', memb_dim = 'member', sdate_dim = 'sdate',
-                       ncores = NULL) {
+                       time_dim = 'time', memb_dim = 'member', 
+                       sdate_dim = 'sdate', ncores = NULL) {
   # Initial checks
   ## data
   if (is.null(data)) {
@@ -202,8 +219,12 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
   if (is.null(memb_dim)) {
     memb_dim <- 99999
   }
-  if (!is.null(dates)) {
-    if (!is.null(start) && !is.null(end)) {
+
+  if (!is.null(start) && !is.null(end)) {
+    if (is.null(dates)) {
+      warning("Parameter 'dates' is NULL and the average of the ",
+              "full data provided in 'data' is computed.")
+    } else {
       if (!any(c(is.list(start), is.list(end)))) {
         stop("Parameter 'start' and 'end' must be lists indicating the ",
              "day and the month of the period start and end.")
@@ -211,7 +232,7 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
       if (time_dim %in% names(dim(threshold))) {
         if (dim(threshold)[time_dim] == dim(data)[time_dim]) {
           if (!is.null(dim(dates)) && sdate_dim %in% names(dim(dates))) {
-            dates_thres <- .arraysubset(dates, dim = sdate_dim, value = 1)
+            dates_thres <- Subset(dates, along = sdate_dim, indices = 1)
             threshold <- SelectPeriodOnData(data = threshold, dates = dates_thres, start, end,
                                             time_dim = time_dim, ncores = ncores)
           } else {
@@ -220,10 +241,16 @@ QThreshold <- function(data, threshold, dates = NULL, start = NULL, end = NULL,
           }
         }
       }
-      data <- SelectPeriodOnData(data, dates, start, end, 
-                                 time_dim = time_dim, ncores = ncores)
+      if (!is.null(dim(dates))) {
+        data <- SelectPeriodOnData(data = data, dates = dates, start = start, 
+                                   end = end, time_dim = time_dim, ncores = ncores)
+      } else {
+        warning("Parameter 'dates' must have named dimensions if 'start' and ",
+                "'end' are not NULL. All data will be used.")
+      }
     }
   }
+  
   if (length(threshold) == 1) {
     if (memb_dim %in% names(dim(data))) {
       probs <- Apply(list(data), target_dims = c(memb_dim, sdate_dim),

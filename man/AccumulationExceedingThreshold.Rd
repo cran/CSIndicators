@@ -12,7 +12,7 @@ AccumulationExceedingThreshold(
   dates = NULL,
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   na.rm = FALSE,
   ncores = NULL
 )
@@ -39,9 +39,9 @@ c('>', '<='), c('>=', '<'),c('>=', '<=')).}
 between data and threshold (TRUE) or not (FALSE by default). It can only be
 TRUE if a unique threshold is used.}
 
-\item{dates}{A vector of dates or a multidimensional array with of dates with 
-named dimensions matching the dimensions on parameter 'data'. By default it
-is NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to define the initial date of the period
 to select from the data by providing a list of two elements: the initial 
@@ -55,7 +55,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. It can only
+compute the indicator. By default, it is set to 'time'. It can only
 indicate one time dimension.}
 
 \item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) 
@@ -78,20 +78,14 @@ use a percentile as a scalar, the function \code{Threshold} or
 following agriculture indices for heat stress can be obtained by using this 
 function:
 \itemize{
- \item\code{GDD}{Summation of daily differences between daily average 
-                 temperatures and 10°C between April 1st and October 31st}
+ \item{'GDD', Summation of daily differences between daily average 
+       temperatures and 10°C between April 1st and October 31st.}
 }
 }
 \examples{
 # Assuming data is already (tasmax + tasmin)/2 - 10
 data <- array(rnorm(5 * 3 * 214 * 2, mean = 25, sd = 3),
-                   c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
-Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
-              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
-          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
-              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
-          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
-              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+                   c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 GDD <- AccumulationExceedingThreshold(data, threshold = 0, start = list(1, 4),
                                      end = list(31, 10))
 }

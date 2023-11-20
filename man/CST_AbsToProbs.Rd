@@ -8,15 +8,15 @@ CST_AbsToProbs(
   data,
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   memb_dim = "member",
   sdate_dim = "sdate",
   ncores = NULL
 )
 }
 \arguments{
-\item{data}{An 's2dv_cube' object as provided function \code{CST_Load} in 
-package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Start} or 
+\code{CST_Load} in package CSTools.}
 
 \item{start}{An optional parameter to define the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -30,7 +30,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the temporal 
-dimension. By default, it is set to 'ftime'. More than one dimension name 
+dimension. By default, it is set to 'time'. More than one dimension name 
 matching the dimensions provided in the object \code{data$data} can be 
 specified. This dimension is required to subset the data in a requested 
 period.}
@@ -56,17 +56,17 @@ Distribution Function excluding the corresponding initialization.
 \examples{
 exp <- NULL
 exp$data <- array(rnorm(216), dim = c(dataset = 1, member = 2, sdate = 3, 
-                 ftime = 9, lat = 2, lon = 2))
+                 time = 9, lat = 2, lon = 2))
 class(exp) <- 's2dv_cube'
 exp_probs <- CST_AbsToProbs(exp)
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
-                 c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+                 c(member = 5, sdate = 3, time = 214, lon = 2)) 
 exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
-dim(exp$attrs$Dates) <- c(ftime = 214, sdate = 3)
+dim(exp$attrs$Dates) <- c(time = 214, sdate = 3)
 exp_probs <- CST_AbsToProbs(data = exp, start = list(21, 4), end = list(21, 6))
 }

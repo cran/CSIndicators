@@ -1,13 +1,14 @@
-#'Period Mean on 's2dv_cube' objects
+#'Period Max on 's2dv_cube' objects
 #'
-#'Period Mean computes the average (mean) of a given variable in a period.
-#'Providing temperature data, two agriculture indices can be obtained by using 
-#'this function:
+#'Period Max computes the maximum (max) of a given variable in a period.
+#'Two bioclimatic indicators can be obtained by using this function:
 #'\itemize{
-#'  \item{'GST', Growing Season average Temperature: The average temperature 
-#'        from April 1st to Octobe 31st.}
-#'  \item{'SprTX', Spring Average Maximum Temperature: The average daily 
-#'        maximum temperature from April 1st to May 31st.}
+#'  \item{'BIO5', (Providing temperature data) Max Temperature of Warmest 
+#'        Month. The maximum monthly temperature occurrence over a 
+#'        given year (time-series) or averaged span of years (normal).}
+#'  \item{'BIO13', (Providing precipitation data) Precipitation of Wettest 
+#'        Month. This index identifies the total precipitation 
+#'        that prevails during the wettest month.}
 #'}
 #'
 #'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
@@ -32,12 +33,11 @@
 #'
 #'@return An 's2dv_cube' object containing the indicator in the element 
 #'\code{data} with dimensions of the input parameter 'data' except the 
-#'dimension where the mean has been computed (specified with 'time_dim'). The 
-#''Dates' array is updated to the dates corresponding to the beginning of the 
-#'aggregated time period. A new element called 'time_bounds' will be added into 
-#'the 'attrs' element in the 's2dv_cube' object. It consists of a list 
-#'containing two elements, the start and end dates of the aggregated period with 
-#'the same dimensions of 'Dates' element.
+#'dimension where the max has been computed (specified with 'time_dim'). A new 
+#'element called 'time_bounds' will be added into the 'attrs' element in the 
+#''s2dv_cube' object. It consists of a list containing two elements, the start 
+#'and end dates of the aggregated period with the same dimensions of 'Dates' 
+#'element.
 #'
 #'@examples
 #'exp <- NULL
@@ -54,14 +54,14 @@
 #'exp$attrs$Dates <- Dates
 #'class(exp) <- 's2dv_cube'
 #'
-#'SA <- CST_PeriodMean(exp, start = list(01, 12), end = list(01, 01))
+#'res <- CST_PeriodMax(exp, start = list(01, 12), end = list(01, 01))
 #'
 #'@import multiApply
 #'@importFrom ClimProjDiags Subset
 #'@export
-CST_PeriodMean <- function(data, start = NULL, end = NULL,
-                           time_dim = 'time', na.rm = FALSE,
-                           ncores = NULL) {
+CST_PeriodMax <- function(data, start = NULL, end = NULL,
+                          time_dim = 'time', na.rm = FALSE,
+                          ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
     stop("Parameter 'data' must be of the class 's2dv_cube'.")
@@ -78,8 +78,8 @@ CST_PeriodMean <- function(data, start = NULL, end = NULL,
   }
 
   Dates <- data$attrs$Dates
-  total <- PeriodMean(data = data$data, dates = Dates, start = start, end = end,
-                      time_dim = time_dim, na.rm = na.rm, ncores = ncores)
+  total <- PeriodMax(data = data$data, dates = Dates, start = start, end = end,
+                     time_dim = time_dim, na.rm = na.rm, ncores = ncores)
   
   data$data <- total
   data$dims <- dim(total)
@@ -111,16 +111,17 @@ CST_PeriodMean <- function(data, start = NULL, end = NULL,
   return(data)
 }
 
-#'Period Mean on multidimensional array objects
+#'Period max on multidimensional array objects
 #'
-#'Period Mean computes the average (mean) of a given variable in a period.
-#'Providing temperature data, two agriculture indices can be obtained by using 
-#'this function:
+#'Period max computes the average (max) of a given variable in a period.
+#'Two bioclimatic indicators can be obtained by using this function:
 #'\itemize{
-#'  \item{'GST', Growing Season average Temperature: The average temperature 
-#'        from April 1st to Octobe 31st.}
-#'  \item{'SprTX', Spring Average Maximum Temperature: The average daily 
-#'        maximum temperature from April 1st to May 31st.}
+#'  \item{'BIO5', (Providing temperature data) Max Temperature of Warmest 
+#'        Month. The maximum monthly temperature occurrence over a 
+#'        given year (time-series) or averaged span of years (normal).}
+#'  \item{'BIO13', (Providing precipitation data) Precipitation of Wettest 
+#'        Month. This index identifies the total precipitation 
+#'        that prevails during the wettest month.}
 #'}
 #'
 #'@param data A multidimensional array with named dimensions.
@@ -159,12 +160,12 @@ CST_PeriodMean <- function(data, start = NULL, end = NULL,
 #'           seq(as.Date("2003-11-01", "%Y-%m-%d", tz = "UTC"), 
 #'               as.Date("2004-01-01", "%Y-%m-%d", tz = "UTC"), by = "month"))
 #'dim(Dates) <- c(sdate = 4, time = 3)
-#'SA <- PeriodMean(data, dates = Dates, start = list(01, 12), end = list(01, 01))
+#'res <- PeriodMax(data, dates = Dates, start = list(01, 12), end = list(01, 01))
 #'
 #'@import multiApply
 #'@export
-PeriodMean <- function(data, dates = NULL, start = NULL, end = NULL,
-                       time_dim = 'time', na.rm = FALSE, ncores = NULL) {
+PeriodMax <- function(data, dates = NULL, start = NULL, end = NULL,
+                      time_dim = 'time', na.rm = FALSE, ncores = NULL) {
   # Initial checks
   ## data
   if (is.null(data)) {
@@ -204,7 +205,7 @@ PeriodMean <- function(data, dates = NULL, start = NULL, end = NULL,
       }
     }
   }
-  total <- Apply(list(data), target_dims = time_dim, fun = mean,
+  total <- Apply(list(data), target_dims = time_dim, fun = max,
                  na.rm = na.rm, ncores = ncores)$output1
   return(total)
 }

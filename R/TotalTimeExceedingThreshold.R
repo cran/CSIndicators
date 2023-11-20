@@ -9,19 +9,19 @@
 #'Providing maximum temperature daily data, the following agriculture 
 #'indices for heat stress can be obtained by using this function:
 #'\itemize{
-#'  \item\code{SU35}{Total count of days when daily maximum temperatures exceed 
-#'                   35°C in the seven months from the start month given (e.g. 
-#'                   from April to October for start month of April).}
-#'  \item\code{SU36}{Total count of days when daily maximum temperatures exceed 
-#'                   36 between June 21st and September 21st}
-#'  \item\code{SU40}{Total count of days when daily maximum temperatures exceed 
-#'                   40 between June 21st and September 21st}
-#'  \item\code{Spr32}{Total count of days when daily maximum temperatures exceed
-#'                    32 between April 21st and June 21st}
+#'  \item{'SU35', Total count of days when daily maximum temperatures exceed 
+#'        35°C in the seven months from the start month given (e.g. from April 
+#'        to October for start month of April).}
+#'  \item{'SU36', Total count of days when daily maximum temperatures exceed 
+#'        36 between June 21st and September 21st.}
+#'  \item{'SU40', Total count of days when daily maximum temperatures exceed 
+#'        40 between June 21st and September 21st.}
+#'  \item{'Spr32', Total count of days when daily maximum temperatures exceed
+#'        32 between April 21st and June 21st.}
 #'}
 #'
-#'@param data An 's2dv_cube' object as provided by function \code{CST_Load} in 
-#'  package CSTools.
+#'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
+#'  \code{CST_Load} in package CSTools.
 #'@param threshold If only one threshold is used, it can be an 's2dv_cube' 
 #'  object or a multidimensional array with named dimensions. It must be in the 
 #'  same units and with the common dimensions of the same length as parameter 
@@ -45,7 +45,7 @@
 #'  the period and the final month of the period. By default it is set to NULL 
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute the indicator. By default, it is set to 'ftime'. It can only
+#'  compute the indicator. By default, it is set to 'time'. It can only
 #'  indicate one time dimension.
 #'@param na.rm A logical value indicating whether to ignore NA values (TRUE) or 
 #'  not (FALSE). 
@@ -54,26 +54,35 @@
 #'
 #'@return An 's2dv_cube' object containing in element \code{data} the total 
 #'number of the corresponding units of the data frequency that a variable is 
-#'exceeding a threshold during a period.
+#'exceeding a threshold during a period with dimensions of the input parameter 
+#''data' except the dimension where the indicator has been computed. The 
+#''Dates' array is updated to the dates corresponding to the beginning of the 
+#'aggregated time period. A new element called 'time_bounds' will be added into 
+#'the 'attrs' element in the 's2dv_cube' object. It consists of a list 
+#'containing two elements, the start and end dates of the aggregated period with 
+#'the same dimensions of 'Dates' element.
 #' 
 #'@examples
 #'exp <- NULL
-#'exp$data <- array(abs(rnorm(5 * 3 * 214 * 2)*280),
-#'                  c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+#'exp$data <- array(rnorm(5 * 3 * 214 * 2)*23,
+#'                  c(member = 5, sdate = 3, time = 214, lon = 2)) 
 #'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(exp$attrs$Dates) <- c(sdate = 3, time = 214)
 #'class(exp) <- 's2dv_cube'
-#'DOT <- CST_TotalTimeExceedingThreshold(exp, threshold = 280)
+#'DOT <- CST_TotalTimeExceedingThreshold(exp, threshold = 23, start = list(21, 4), 
+#'                                       end = list(21, 6))
 #'
 #'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 CST_TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
                                             start = NULL, end = NULL,
-                                            time_dim = 'ftime',
+                                            time_dim = 'time',
                                             na.rm = FALSE, ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
@@ -101,17 +110,39 @@ CST_TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
       threshold[[2]] <- threshold[[2]]$data
     }
   }
-  total <- TotalTimeExceedingThreshold(data$data, dates = data$attrs$Dates,
+  
+  Dates <- data$attrs$Dates
+  total <- TotalTimeExceedingThreshold(data = data$data, dates = Dates,
                                        threshold = threshold, op = op,
                                        start = start, end = end, 
                                        time_dim = time_dim, na.rm = na.rm, 
                                        ncores = ncores)
   data$data <- total
-  if (!is.null(start) && !is.null(end)) {
-     data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
-                                             start = start, end = end,
-                                             time_dim = time_dim, 
-                                             ncores = ncores)
+  data$dims <- dim(total)
+  data$coords[[time_dim]] <- NULL
+
+  if (!is.null(Dates)) {
+    if (!is.null(start) && !is.null(end)) {
+      Dates <- SelectPeriodOnDates(dates = Dates, start = start, end = end,
+                                   time_dim = time_dim, ncores = ncores)
+    }
+    if (is.null(dim(Dates))) {
+      warning("Element 'Dates' has NULL dimensions. They will not be ", 
+              "subset and 'time_bounds' will be missed.")
+      data$attrs$Dates <- Dates
+    } else {
+      # Create time_bounds
+      time_bounds <- NULL
+      time_bounds$start <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
+                                                 indices = 1, drop = 'selected')
+      time_bounds$end <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
+                                               indices = dim(Dates)[time_dim], 
+                                               drop = 'selected')
+
+      # Add Dates in attrs
+      data$attrs$Dates <- time_bounds$start
+      data$attrs$time_bounds <- time_bounds
+    }
   }
   return(data)
 }
@@ -126,15 +157,15 @@ CST_TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
 #'Providing maximum temperature daily data, the following agriculture 
 #'indices for heat stress can be obtained by using this function:
 #'\itemize{
-#'  \item\code{SU35}{Total count of days when daily maximum temperatures exceed 
-#'                   35°C in the seven months from the start month given (e.g. 
-#'                   from April to October for start month of April).}
-#'  \item\code{SU36}{Total count of days when daily maximum temperatures exceed 
-#'                   36 between June 21st and September 21st}
-#'  \item\code{SU40}{Total count of days when daily maximum temperatures exceed 
-#'                   40 between June 21st and September 21st}
-#'  \item\code{Spr32}{Total count of days when daily maximum temperatures exceed
-#'                    32 between April 21st and June 21st}
+#'  \item{'SU35', Total count of days when daily maximum temperatures exceed 
+#'        35°C in the seven months from the start month given (e.g. from April 
+#'        to October for start month of April).}
+#'  \item{'SU36', Total count of days when daily maximum temperatures exceed 
+#'        36 between June 21st and September 21st.}
+#'  \item{'SU40', Total count of days when daily maximum temperatures exceed 
+#'        40 between June 21st and September 21st.}
+#'  \item{'Spr32', Total count of days when daily maximum temperatures exceed
+#'        32 between April 21st and June 21st.}
 #'}
 #'
 #'@param data A multidimensional array with named dimensions.
@@ -151,9 +182,9 @@ CST_TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
 #'  are used it has to be a vector of a pair of two logical operators: 
 #'  c('<', '>'), c('<', '>='), c('<=', '>'), c('<=', '>='), c('>', '<'), 
 #'  c('>', '<='), c('>=', '<'),c('>=', '<=')).
-#'@param dates A vector of dates or a multidimensional array of dates with named
-#'  dimensions matching the dimensions on parameter 'data'. By default it is 
-#'  NULL, to select a period this parameter must be provided.
+#'@param dates A multidimensional array of dates with named dimensions matching 
+#'  the temporal dimensions on parameter 'data'. By default it is NULL, to  
+#'  select aperiod this parameter must be provided.
 #'@param start An optional parameter to define the initial date of the period 
 #'  to select from the data by providing a list of two elements: the initial 
 #'  date of the period and the initial month of the period. By default it is set
@@ -164,7 +195,7 @@ CST_TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
 #'  the period and the final month of the period. By default it is set to NULL 
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute the indicator. By default, it is set to 'ftime'. It can only
+#'  compute the indicator. By default, it is set to 'time'. It can only
 #'  indicate one time dimension.
 #'@param na.rm A logical value indicating whether to ignore NA values (TRUE) or 
 #'  not (FALSE). 
@@ -173,18 +204,27 @@ CST_TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
 #'
 #'@return A multidimensional array with named dimensions containing the total 
 #'number of the corresponding units of the data frequency that a variable is 
-#'exceeding a threshold during a period.
+#'exceeding a threshold during a period with dimensions of the input parameter 
+#''data' except the dimension where the indicator has been computed.
 #'
 #'@examples
-#'exp <- array(abs(rnorm(5 * 3 * 214 * 2)*280),
-#'             c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
-#'DOT <- TotalTimeExceedingThreshold(exp, threshold = 300, time_dim = 'ftime')
+#'data <- array(rnorm(5 * 3 * 214 * 2)*23,
+#'              c(member = 5, sdate = 3, time = 214, lon = 2)) 
+#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(sdate = 3, time = 214)
+#'DOT <- TotalTimeExceedingThreshold(data, threshold = 23, dates = Dates,
+#'                                   start = list(21, 4), end = list(21, 6))
 #'
 #'@import multiApply
 #'@export
 TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
                                         dates = NULL, start = NULL, end = NULL,
-                                        time_dim = 'ftime', na.rm = FALSE,
+                                        time_dim = 'time', na.rm = FALSE,
                                         ncores = NULL) {
   # data
   if (is.null(data)) {
@@ -313,8 +353,11 @@ TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
     }
   }
   # dates
-  if (!is.null(dates)) {
-    if (!is.null(start) && !is.null(end)) {
+  if (!is.null(start) && !is.null(end)) {
+    if (is.null(dates)) {
+      warning("Parameter 'dates' is NULL and the average of the ",
+              "full data provided in 'data' is computed.")
+    } else {
       if (!any(c(is.list(start), is.list(end)))) {
         stop("Parameter 'start' and 'end' must be lists indicating the ",
              "day and the month of the period start and end.")
@@ -336,8 +379,14 @@ TotalTimeExceedingThreshold <- function(data, threshold, op = '>',
           }
         }
       }
-      data <- SelectPeriodOnData(data, dates, start, end, 
-                                 time_dim = time_dim, ncores = ncores)
+      if (!is.null(dim(dates))) {
+        data <- SelectPeriodOnData(data = data, dates = dates, start = start, 
+                                   end = end, time_dim = time_dim, 
+                                   ncores = ncores)
+      } else {
+        warning("Parameter 'dates' must have named dimensions if 'start' and ",
+                "'end' are not NULL. All data will be used.")
+      }
     }
   }
 

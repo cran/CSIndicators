@@ -4,7 +4,7 @@
 \alias{SelectPeriodOnData}
 \title{Select a period on Data on multidimensional array objects}
 \usage{
-SelectPeriodOnData(data, dates, start, end, time_dim = "ftime", ncores = NULL)
+SelectPeriodOnData(data, dates, start, end, time_dim = "time", ncores = NULL)
 }
 \arguments{
 \item{data}{A multidimensional array with named dimensions with at least the
@@ -24,7 +24,7 @@ to select from the data. The first element is the final day of the period
 and the second element is the final month of the period.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute select the dates. By default, it is set to 'ftime'. Parameters 
+compute select the dates. By default, it is set to 'time'. Parameters 
 'data' and 'dates'}
 
 \item{ncores}{An integer indicating the number of cores to use in parallel 
@@ -40,13 +40,13 @@ Auxiliary function to subset data for a specific period.
 }
 \examples{
 data <- array(rnorm(5 * 3 * 214 * 2),
-             c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
+             c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
               as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
-dim(Dates) <- c(ftime = 214, sdate = 3)
+dim(Dates) <- c(time = 214, sdate = 3)
 Period <- SelectPeriodOnData(data, Dates, start = list(21, 6), end = list(21, 9))
 }

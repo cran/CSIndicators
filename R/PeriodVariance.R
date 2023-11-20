@@ -1,13 +1,18 @@
-#'Period Mean on 's2dv_cube' objects
+#'Period Variance on 's2dv_cube' objects
 #'
-#'Period Mean computes the average (mean) of a given variable in a period.
-#'Providing temperature data, two agriculture indices can be obtained by using 
-#'this function:
+#'Period Variance computes the average (var) of a given variable in a period.
+#'Two bioclimatic indicators can be obtained by using this function:
 #'\itemize{
-#'  \item{'GST', Growing Season average Temperature: The average temperature 
-#'        from April 1st to Octobe 31st.}
-#'  \item{'SprTX', Spring Average Maximum Temperature: The average daily 
-#'        maximum temperature from April 1st to May 31st.}
+#'  \item{'BIO4', (Providing temperature data) Temperature Seasonality 
+#'        (Standard Deviation). The amount of temperature variation  
+#'        over a given year (or averaged years) based on the standard 
+#'        deviation (variation) of monthly temperature averages.}
+#'  \item{'BIO15', (Providing precipitation data) Precipitation Seasonality 
+#'        (CV). This is a measure of the variation in monthly precipitation 
+#'        totals over the course of the year. This index is the ratio of the 
+#'        standard deviation of the monthly total precipitation to the mean 
+#'        monthly total precipitation (also known as the coefficient of 
+#'        variation) and is expressed as a percentage.}
 #'}
 #'
 #'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
@@ -32,12 +37,11 @@
 #'
 #'@return An 's2dv_cube' object containing the indicator in the element 
 #'\code{data} with dimensions of the input parameter 'data' except the 
-#'dimension where the mean has been computed (specified with 'time_dim'). The 
-#''Dates' array is updated to the dates corresponding to the beginning of the 
-#'aggregated time period. A new element called 'time_bounds' will be added into 
-#'the 'attrs' element in the 's2dv_cube' object. It consists of a list 
-#'containing two elements, the start and end dates of the aggregated period with 
-#'the same dimensions of 'Dates' element.
+#'dimension where the var has been computed (specified with 'time_dim'). A new 
+#'element called 'time_bounds' will be added into the 'attrs' element in the 
+#''s2dv_cube' object. It consists of a list containing two elements, the start 
+#'and end dates of the aggregated period with the same dimensions of 'Dates' 
+#'element.
 #'
 #'@examples
 #'exp <- NULL
@@ -54,12 +58,12 @@
 #'exp$attrs$Dates <- Dates
 #'class(exp) <- 's2dv_cube'
 #'
-#'SA <- CST_PeriodMean(exp, start = list(01, 12), end = list(01, 01))
+#'res <- CST_PeriodVariance(exp, start = list(01, 12), end = list(01, 01))
 #'
 #'@import multiApply
 #'@importFrom ClimProjDiags Subset
 #'@export
-CST_PeriodMean <- function(data, start = NULL, end = NULL,
+CST_PeriodVariance <- function(data, start = NULL, end = NULL,
                            time_dim = 'time', na.rm = FALSE,
                            ncores = NULL) {
   # Check 's2dv_cube'
@@ -78,8 +82,8 @@ CST_PeriodMean <- function(data, start = NULL, end = NULL,
   }
 
   Dates <- data$attrs$Dates
-  total <- PeriodMean(data = data$data, dates = Dates, start = start, end = end,
-                      time_dim = time_dim, na.rm = na.rm, ncores = ncores)
+  total <- PeriodVariance(data = data$data, dates = Dates, start = start, end = end,
+                          time_dim = time_dim, na.rm = na.rm, ncores = ncores)
   
   data$data <- total
   data$dims <- dim(total)
@@ -111,16 +115,21 @@ CST_PeriodMean <- function(data, start = NULL, end = NULL,
   return(data)
 }
 
-#'Period Mean on multidimensional array objects
+#'Period Variance on multidimensional array objects
 #'
-#'Period Mean computes the average (mean) of a given variable in a period.
-#'Providing temperature data, two agriculture indices can be obtained by using 
-#'this function:
+#'Period Variance computes the average (var) of a given variable in a period.
+#'Two bioclimatic indicators can be obtained by using this function:
 #'\itemize{
-#'  \item{'GST', Growing Season average Temperature: The average temperature 
-#'        from April 1st to Octobe 31st.}
-#'  \item{'SprTX', Spring Average Maximum Temperature: The average daily 
-#'        maximum temperature from April 1st to May 31st.}
+#'  \item{'BIO4', (Providing temperature data) Temperature Seasonality 
+#'        (Standard Deviation). The amount of temperature variation  
+#'        over a given year (or averaged years) based on the standard 
+#'        deviation (variation) of monthly temperature averages.}
+#'  \item{'BIO15', (Providing precipitation data) Precipitation Seasonality 
+#'        (CV). This is a measure of the variation in monthly precipitation 
+#'        totals over the course of the year. This index is the ratio of the 
+#'        standard deviation of the monthly total precipitation to the mean 
+#'        monthly total precipitation (also known as the coefficient of 
+#'        variation) and is expressed as a percentage.}
 #'}
 #'
 #'@param data A multidimensional array with named dimensions.
@@ -159,12 +168,12 @@ CST_PeriodMean <- function(data, start = NULL, end = NULL,
 #'           seq(as.Date("2003-11-01", "%Y-%m-%d", tz = "UTC"), 
 #'               as.Date("2004-01-01", "%Y-%m-%d", tz = "UTC"), by = "month"))
 #'dim(Dates) <- c(sdate = 4, time = 3)
-#'SA <- PeriodMean(data, dates = Dates, start = list(01, 12), end = list(01, 01))
+#'res <- PeriodVariance(data, dates = Dates, start = list(01, 12), end = list(01, 01))
 #'
 #'@import multiApply
 #'@export
-PeriodMean <- function(data, dates = NULL, start = NULL, end = NULL,
-                       time_dim = 'time', na.rm = FALSE, ncores = NULL) {
+PeriodVariance <- function(data, dates = NULL, start = NULL, end = NULL,
+                           time_dim = 'time', na.rm = FALSE, ncores = NULL) {
   # Initial checks
   ## data
   if (is.null(data)) {
@@ -204,9 +213,15 @@ PeriodMean <- function(data, dates = NULL, start = NULL, end = NULL,
       }
     }
   }
-  total <- Apply(list(data), target_dims = time_dim, fun = mean,
+  total <- Apply(list(data), target_dims = time_dim, 
+                 fun = .periodvariance,
                  na.rm = na.rm, ncores = ncores)$output1
   return(total)
+}
+
+.periodvariance <- function(data, na.rm) {
+  var <- sum((data - mean(data, na.rm = na.rm))^2) / (length(data)-1)
+  return(var)
 }
 
 

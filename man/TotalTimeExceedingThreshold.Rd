@@ -11,7 +11,7 @@ TotalTimeExceedingThreshold(
   dates = NULL,
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   na.rm = FALSE,
   ncores = NULL
 )
@@ -34,9 +34,9 @@ are used it has to be a vector of a pair of two logical operators:
 c('<', '>'), c('<', '>='), c('<=', '>'), c('<=', '>='), c('>', '<'), 
 c('>', '<='), c('>=', '<'),c('>=', '<=')).}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to define the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -50,7 +50,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. It can only
+compute the indicator. By default, it is set to 'time'. It can only
 indicate one time dimension.}
 
 \item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) or 
@@ -62,7 +62,8 @@ computation.}
 \value{
 A multidimensional array with named dimensions containing the total 
 number of the corresponding units of the data frequency that a variable is 
-exceeding a threshold during a period.
+exceeding a threshold during a period with dimensions of the input parameter 
+'data' except the dimension where the indicator has been computed.
 }
 \description{
 The Total Time of a variable exceeding (or not) a Threshold. It returns the  
@@ -74,20 +75,28 @@ variable units, i.e. to use a percentile as a scalar, the function
 Providing maximum temperature daily data, the following agriculture 
 indices for heat stress can be obtained by using this function:
 \itemize{
- \item\code{SU35}{Total count of days when daily maximum temperatures exceed 
-                  35°C in the seven months from the start month given (e.g. 
-                  from April to October for start month of April).}
- \item\code{SU36}{Total count of days when daily maximum temperatures exceed 
-                  36 between June 21st and September 21st}
- \item\code{SU40}{Total count of days when daily maximum temperatures exceed 
-                  40 between June 21st and September 21st}
- \item\code{Spr32}{Total count of days when daily maximum temperatures exceed
-                   32 between April 21st and June 21st}
+ \item{'SU35', Total count of days when daily maximum temperatures exceed 
+       35°C in the seven months from the start month given (e.g. from April 
+       to October for start month of April).}
+ \item{'SU36', Total count of days when daily maximum temperatures exceed 
+       36 between June 21st and September 21st.}
+ \item{'SU40', Total count of days when daily maximum temperatures exceed 
+       40 between June 21st and September 21st.}
+ \item{'Spr32', Total count of days when daily maximum temperatures exceed
+       32 between April 21st and June 21st.}
 }
 }
 \examples{
-exp <- array(abs(rnorm(5 * 3 * 214 * 2)*280),
-            c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
-DOT <- TotalTimeExceedingThreshold(exp, threshold = 300, time_dim = 'ftime')
+data <- array(rnorm(5 * 3 * 214 * 2)*23,
+             c(member = 5, sdate = 3, time = 214, lon = 2)) 
+Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(Dates) <- c(sdate = 3, time = 214)
+DOT <- TotalTimeExceedingThreshold(data, threshold = 23, dates = Dates,
+                                  start = list(21, 4), end = list(21, 6))
 
 }

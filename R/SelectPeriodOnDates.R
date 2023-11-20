@@ -10,7 +10,7 @@
 #'  select from the data by providing a list of two elements: the final day of 
 #'  the period and the final month of the period.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute select the dates. By default, it is set to 'ftime'. More than one 
+#'  compute select the dates. By default, it is set to 'time'. More than one 
 #'  dimension name matching the dimensions provided in the object 
 #'  \code{data$data} can be specified.
 #'@param ncores An integer indicating the number of cores to use in parallel 
@@ -28,11 +28,11 @@
 #'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
-#'dim(Dates) <- c(ftime = 214, sdate = 3)
+#'dim(Dates) <- c(time = 214, sdate = 3)
 #'Period <- SelectPeriodOnDates(Dates, start = list(21, 6), end = list(21, 9))
 #'@export
 SelectPeriodOnDates <- function(dates, start, end,
-                                time_dim = 'ftime', ncores = NULL) {
+                                time_dim = 'time', ncores = NULL) {
   if (is.null(dim(dates))) {
     dim(dates) <- length(dates)
     names(dim(dates)) <- time_dim

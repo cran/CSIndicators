@@ -8,12 +8,12 @@
 #'following agriculture indices for heat stress can be obtained by using this 
 #'function:
 #'\itemize{
-#'  \item\code{GDD}{Summation of daily differences between daily average 
-#'                  temperatures and 10°C between April 1st and October 31st}
+#'  \item{'GDD', Summation of daily differences between daily average 
+#'        temperatures and 10°C between April 1st and October 31st.}
 #'}
 #'
-#'@param data An 's2dv_cube' object as provided by function \code{CST_Load} in
-#'  package CSTools. 
+#'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
+#'  \code{CST_Load} in package CSTools.
 #'@param threshold If only one threshold is used, it can be an 's2dv_cube' 
 #'  object or a multidimensional array with named dimensions. It must be in the 
 #'  same units and with the common dimensions of the same length as parameter 
@@ -40,7 +40,7 @@
 #'  the period and the final month of the period. By default it is set to NULL
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute the indicator. By default, it is set to 'ftime'. It can only
+#'  compute the indicator. By default, it is set to 'time'. It can only
 #'  indicate one time dimension.
 #'@param na.rm A logical value indicating whether to ignore NA values (TRUE) 
 #'  or not (FALSE).
@@ -49,18 +49,35 @@
 #'
 #'@return An 's2dv_cube' object containing the aggregated values in the element
 #'\code{data} with dimensions of the input parameter 'data' except the dimension
-#'where the indicator has been computed.
+#'where the indicator has been computed. The 'Dates' array is updated to 
+#'the dates corresponding to the beginning of the aggregated time period. A new 
+#'element called 'time_bounds' will be added into the 'attrs' element in the 
+#''s2dv_cube' object. It consists of a list containing two elements, the start 
+#'and end dates of the aggregated period with the same dimensions of 'Dates' 
+#'element.
+#' 
 #'@examples 
 #'exp <- NULL
-#'exp$data <- array(rnorm(216)*200, dim = c(dataset = 1, member = 2, sdate = 3, 
-#'                  ftime = 9, lat = 2, lon = 2))
+#'exp$data <- array(abs(rnorm(5 * 3 * 214 * 2)*100), 
+#'                  c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 #'class(exp) <- 's2dv_cube'
-#'DOT <- CST_AccumulationExceedingThreshold(exp, threshold = 280)
+#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(sdate = 3, time = 214)
+#'exp$attrs$Dates <- Dates
+#'AT <- CST_AccumulationExceedingThreshold(data = exp, threshold = 100,
+#'                                         start = list(21, 4), 
+#'                                         end = list(21, 6))
 #'
 #'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FALSE,
-                                               start = NULL, end = NULL, time_dim = 'ftime',
+                                               start = NULL, end = NULL, time_dim = 'time',
                                                na.rm = FALSE, ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
@@ -78,7 +95,7 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
 
   if (length(op) == 1) {
     if (inherits(threshold, 's2dv_cube')) {
-        threshold <- threshold$data
+      threshold <- threshold$data
     }
   } else if (length(op) == 2) {
     if (inherits(threshold[[1]], 's2dv_cube')) {
@@ -89,17 +106,39 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
     }
   }
 
-  total <- AccumulationExceedingThreshold(data$data, dates = data$attrs$Dates,
+  Dates <- data$attrs$Dates
+  total <- AccumulationExceedingThreshold(data = data$data, dates = Dates,
                                           threshold = threshold, op = op, diff = diff,
                                           start = start, end = end, time_dim = time_dim,
                                           na.rm = na.rm, ncores = ncores)
   data$data <- total
-  if (!is.null(start) && !is.null(end)) {
-    data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
-                                            start = start, end = end,
-                                            time_dim = time_dim, 
-                                            ncores = ncores)
+  data$dims <- dim(total)
+  data$coords[[time_dim]] <- NULL
+
+  if (!is.null(Dates)) {
+    if (!is.null(start) && !is.null(end)) {
+      Dates <- SelectPeriodOnDates(dates = Dates, start = start, end = end,
+                                   time_dim = time_dim, ncores = ncores)
+    }
+    if (is.null(dim(Dates))) {
+      warning("Element 'Dates' has NULL dimensions. They will not be ", 
+              "subset and 'time_bounds' will be missed.")
+      data$attrs$Dates <- Dates
+    } else {
+      # Create time_bounds
+      time_bounds <- NULL
+      time_bounds$start <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
+                                                 indices = 1, drop = 'selected')
+      time_bounds$end <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
+                                               indices = dim(Dates)[time_dim], 
+                                               drop = 'selected')
+
+      # Add Dates in attrs
+      data$attrs$Dates <- time_bounds$start
+      data$attrs$time_bounds <- time_bounds
+    }
   }
+
   return(data)
 }
 #'Accumulation of a variable when Exceeding (not exceeding) a Threshold
@@ -112,8 +151,8 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
 #'following agriculture indices for heat stress can be obtained by using this 
 #'function:
 #'\itemize{
-#'  \item\code{GDD}{Summation of daily differences between daily average 
-#'                  temperatures and 10°C between April 1st and October 31st}
+#'  \item{'GDD', Summation of daily differences between daily average 
+#'        temperatures and 10°C between April 1st and October 31st.}
 #'}
 #'
 #'@param data A multidimensional array with named dimensions.
@@ -133,9 +172,9 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
 #'@param diff A logical value indicating whether to accumulate the difference 
 #'  between data and threshold (TRUE) or not (FALSE by default). It can only be
 #'  TRUE if a unique threshold is used.
-#'@param dates A vector of dates or a multidimensional array with of dates with 
-#'  named dimensions matching the dimensions on parameter 'data'. By default it
-#'  is NULL, to select a period this parameter must be provided.
+#'@param dates A multidimensional array of dates with named dimensions matching 
+#'  the temporal dimensions on parameter 'data'. By default it is NULL, to  
+#'  select aperiod this parameter must be provided.
 #'@param start An optional parameter to define the initial date of the period
 #'  to select from the data by providing a list of two elements: the initial 
 #'  date of the period and the initial month of the period. By default it is 
@@ -146,7 +185,7 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
 #'  the period and the final month of the period. By default it is set to NULL
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute the indicator. By default, it is set to 'ftime'. It can only
+#'  compute the indicator. By default, it is set to 'time'. It can only
 #'  indicate one time dimension.
 #'@param na.rm A logical value indicating whether to ignore NA values (TRUE) 
 #'  or not (FALSE).
@@ -160,20 +199,14 @@ CST_AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff =
 #'@examples
 #'# Assuming data is already (tasmax + tasmin)/2 - 10
 #'data <- array(rnorm(5 * 3 * 214 * 2, mean = 25, sd = 3),
-#'                    c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
-#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
-#'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
-#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
-#'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
-#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
-#'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'                    c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 #'GDD <- AccumulationExceedingThreshold(data, threshold = 0, start = list(1, 4),
 #'                                      end = list(31, 10))
 #'@import multiApply
 #'@export
 AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FALSE,
                                            dates = NULL, start = NULL, end = NULL,
-                                           time_dim = 'ftime', na.rm = FALSE,
+                                           time_dim = 'time', na.rm = FALSE,
                                            ncores = NULL) {
   # data
   if (is.null(data)) {
@@ -228,8 +261,8 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
   }
   if (length(op) == 2) {
     if (length(op) != length(threshold)) {
-      stop(paste0("If 'op' is a  pair of logical operators parameter 'threshold' ",
-                  "also has to be a pair of values."))
+      stop("If 'op' is a  pair of logical operators parameter 'threshold' ",
+           "also has to be a pair of values.")
     }
     if (!is.numeric(threshold[[1]]) | !is.numeric(threshold[[2]])) {
       stop("Parameter 'threshold' must be numeric.")
@@ -240,7 +273,8 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
 
     if (!is.array(threshold[[1]]) && length(threshold[[1]]) > 1) {
       if (dim(data)[time_dim] != length(threshold[[1]])) {
-        stop("If parameter 'threshold' is a vector it must have the same length as data any time dimension.")
+        stop("If parameter 'threshold' is a vector it must have the same ", 
+             "length as data any time dimension.")
       } else {
         dim(threshold[[1]]) <- length(threshold[[1]])
         dim(threshold[[2]]) <- length(threshold[[2]])
@@ -265,8 +299,8 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
       if (any(names(dim(threshold[[1]])) %in% names(dim(data)))) {
         common_dims <- dim(threshold[[1]])[names(dim(threshold[[1]])) %in% names(dim(data))]
         if (!all(common_dims == dim(data)[names(common_dims)])) {
-          stop(paste0("Parameter 'data' and 'threshold' must have same length of ",
-                      "all common dimensions."))
+          stop("Parameter 'data' and 'threshold' must have same length of ",
+               "all common dimensions.")
         }
       }
     } else if (length(threshold[[1]]) == 1) {
@@ -276,7 +310,8 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
   } else {
     if (!is.array(threshold) && length(threshold) > 1) {
       if (dim(data)[time_dim] != length(threshold)) {
-        stop("If parameter 'threshold' is a vector it must have the same length as data time dimension.")
+        stop("If parameter 'threshold' is a vector it must have the same ",
+             "length as data time dimension.")
       } else {
         dim(threshold) <- length(threshold)
         names(dim(threshold)) <- time_dim
@@ -288,8 +323,8 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
       if (any(names(dim(threshold)) %in% names(dim(data)))) {
         common_dims <- dim(threshold)[names(dim(threshold)) %in% names(dim(data))]
         if (!all(common_dims == dim(data)[names(common_dims)])) {
-          stop(paste0("Parameter 'data' and 'threshold' must have same length of ",
-                      "all common dimensions."))
+          stop("Parameter 'data' and 'threshold' must have same length of ",
+               "all common dimensions.")
         }
       }
     } else if (length(threshold) == 1) {
@@ -313,27 +348,41 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
       if (length(op) == 1) {
         if (time_dim %in% names(dim(threshold))) {
           if (dim(threshold)[time_dim] == dim(data)[time_dim]) {
-            threshold <- SelectPeriodOnData(threshold, dates, start, end,
-                                            time_dim = time_dim, ncores = ncores)
+            threshold <- SelectPeriodOnData(data = threshold, dates = dates, 
+                                            start = start, end = end,
+                                            time_dim = time_dim, 
+                                            ncores = ncores)
           }
         }
       } else if (length(op) == 2) {
         if (time_dim %in% names(dim(threshold[[1]]))) {
           if (dim(threshold[[1]])[time_dim] == dim(data)[time_dim]) {
-            threshold[[1]] <- SelectPeriodOnData(threshold[[1]], dates, start, end,
-                                                 time_dim = time_dim, ncores = ncores)
-            threshold[[2]] <- SelectPeriodOnData(threshold[[2]], dates, start, end,
-                                                 time_dim = time_dim, ncores = ncores)
+            threshold[[1]] <- SelectPeriodOnData(data = threshold[[1]], 
+                                                 dates = dates, start = start, 
+                                                 end = end, time_dim = time_dim, 
+                                                 ncores = ncores)
+            threshold[[2]] <- SelectPeriodOnData(data = threshold[[2]], dates = dates, 
+                                                 start = start, end = end,
+                                                 time_dim = time_dim, 
+                                                 ncores = ncores)
           }
         }
       }
-      data <- SelectPeriodOnData(data, dates, start, end, 
-                                 time_dim = time_dim, ncores = ncores)
+      if (!is.null(dim(dates))) {
+        data <- SelectPeriodOnData(data = data, dates = dates, start = start, 
+                                   end = end, time_dim = time_dim, 
+                                   ncores = ncores)
+      } else {
+        warning("Parameter 'dates' must have named dimensions if 'start' and ",
+                "'end' are not NULL. All data will be used.")
+      }
+
     }
   }
   # diff
   if (length(op) == 2 & diff == TRUE) {
-    stop("Parameter 'diff' can't be TRUE if the parameter 'threshold' is a range of values.")
+    stop("Parameter 'diff' can't be TRUE if the parameter 'threshold' is a ",
+         "range of values.")
   } else  if (diff == TRUE) {
     if (length(threshold) != 1) {
       stop("Parameter 'diff' can't be TRUE if the parameter 'threshold' is not a scalar.")
@@ -344,8 +393,6 @@ AccumulationExceedingThreshold <- function(data, threshold, op = '>', diff = FAL
     dim(data) <- dim(data)[-length(dim(data))]
     threshold <- 0
   }
-
-  ###
 
   if (length(op) > 1) {
     thres1 <- threshold[[1]]

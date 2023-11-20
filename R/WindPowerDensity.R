@@ -6,8 +6,8 @@
 #'@description It is computed as 0.5*ro*wspd^3. As this function is non-linear, 
 #'it will give inaccurate results if used with period means.
 #'
-#'@param wind An s2dv_cube object with instantaneous wind speeds expressed in m/s 
-#'  obtained from CST_Load or s2dv_cube functions from CSTools pacakge.
+#'@param wind An 's2dv_cube' object with instantaneous wind speeds expressed in 
+#'  m/s obtained from CST_Start or s2dv_cube functions from CSTools pacakge.
 #'@param ro A scalar, or alternatively a multidimensional array with the same
 #'  dimensions as wind, with the air density expressed in kg/m^3. By default it
 #'  takes the value 1.225, the standard density of air at 15ºC and 1013.25 hPa.
@@ -21,7 +21,7 @@
 #'  the period and the final month of the period. By default it is set to NULL
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to
-#'  compute the indicator. By default, it is set to 'ftime'. More than one
+#'  compute the indicator. By default, it is set to 'time'. More than one
 #'  dimension name matching the dimensions provided in the object
 #'  \code{data$data} can be specified.
 #'@param ncores An integer indicating the number of cores to use in parallel
@@ -32,18 +32,27 @@
 #'@examples
 #'wind <- NULL
 #'wind$data <- array(rweibull(n = 100, shape = 2, scale = 6), 
-#'                   c(member = 10, lat = 2, lon = 5))
+#'                   c(member = 5, sdate = 3, time = 214, lon = 2, lat = 5))
 #'wind$coords <- list(lat =  c(40, 41), lon = 1:5)
 #'variable <- list(varName = 'sfcWind', 
 #'                 metadata = list(sfcWind = list(level = 'Surface')))
 #'wind$attrs <- list(Variable = variable, Datasets = 'synthetic', 
 #'                   when = Sys.time(), Dates = '1990-01-01 00:00:00')
+#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(sdate = 3, time = 214)
+#'wind$attrs$Dates <- Dates
 #'class(wind) <- 's2dv_cube'
-#'WCF <- CST_WindPowerDensity(wind)
+#'WPD <- CST_WindPowerDensity(wind, start = list(21, 4), 
+#'                            end = list(21, 6))
 #'
 #'@export
 CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL, 
-                                 time_dim = 'ftime', ncores = NULL) {
+                                 time_dim = 'time', ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(wind, 's2dv_cube')) {
     stop("Parameter 'wind' must be of the class 's2dv_cube'.")
@@ -59,8 +68,10 @@ CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL,
   }
   WindPower <- WindPowerDensity(wind = wind$data, ro = ro, 
                                 dates = wind$attrs$Dates, start = start, 
-                                end = end, ncores = ncores)
+                                end = end, time_dim = time_dim, 
+                                ncores = ncores)
   wind$data <- WindPower
+  wind$dims <- dim(WindPower)
   if ('Variable' %in% names(wind$attrs)) {
     if ('varName' %in% names(wind$attrs$Variable)) {
       wind$attrs$Variable$varName <- 'WindPowerDensity'
@@ -88,9 +99,9 @@ CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL,
 #'@param ro A scalar, or alternatively a multidimensional array with the same
 #'  dimensions as wind, with the air density expressed in kg/m^3. By default it
 #'  takes the value 1.225, the standard density of air at 15ºC and 1013.25 hPa.
-#'@param dates A vector of dates or a multidimensional array of dates with named
-#'  dimensions matching the dimensions on parameter 'data'. By default it is
-#'  NULL, to select a period this parameter must be provided.
+#'@param dates A multidimensional array of dates with named dimensions matching 
+#'  the temporal dimensions on parameter 'data'. By default it is NULL, to  
+#'  select aperiod this parameter must be provided.
 #'@param start An optional parameter to defined the initial date of the period
 #'  to select from the data by providing a list of two elements: the initial
 #'  date of the period and the initial month of the period. By default it is set
@@ -101,7 +112,7 @@ CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL,
 #'  the period and the final month of the period. By default it is set to NULL
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to
-#'  compute the indicator. By default, it is set to 'ftime'. More than one
+#'  compute the indicator. By default, it is set to 'time'. More than one
 #'  dimension name matching the dimensions provided in the object
 #'  \code{data$data} can be specified.
 #'@param ncores An integer indicating the number of cores to use in parallel
@@ -111,20 +122,39 @@ CST_WindPowerDensity <- function(wind, ro = 1.225, start = NULL, end = NULL,
 #'Density expressed in W/m^2.
 #'
 #'@examples
-#'wind <- rweibull(n = 100, shape = 2, scale = 6)
-#'WPD <- WindPowerDensity(wind)
+#'wind <- array(rweibull(n = 32100, shape = 2, scale = 6), 
+#'              c(member = 5, sdate = 3, time = 214, lon = 2, lat = 5))
+#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(sdate = 3, time = 214)
+#'WPD <- WindPowerDensity(wind, dates = Dates, start = list(21, 4), 
+#'                        end = list(21, 6))
 #'
 #'@export
 WindPowerDensity <- function(wind, ro = 1.225, dates = NULL, start = NULL, 
                              end = NULL, time_dim = 'time', ncores = NULL) {
-  if (!is.null(dates)) {
-    if (!is.null(start) && !is.null(end)) {
+
+  if (!is.null(start) && !is.null(end)) {
+    if (is.null(dates)) {
+      warning("Parameter 'dates' is NULL and the average of the ",
+              "full data provided in 'data' is computed.")
+    } else {
       if (!any(c(is.list(start), is.list(end)))) {
        stop("Parameter 'start' and 'end' must be lists indicating the ",
              "day and the month of the period start and end.")
       }
-      wind <- SelectPeriodOnData(wind, dates, start, end,
-                                 time_dim = time_dim, ncores = ncores)
+      if (!is.null(dim(dates))) {
+        wind <- SelectPeriodOnData(data = wind, dates = dates, start = start, 
+                                   end = end, time_dim = time_dim, 
+                                   ncores = ncores)
+      } else {
+        warning("Parameter 'wind' must have named dimensions if 'start' and ",
+                "'end' are not NULL. All data will be used.")
+      }
     }
   }
 	return(0.5 * ro * wind^3)

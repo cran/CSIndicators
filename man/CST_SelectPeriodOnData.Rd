@@ -4,11 +4,11 @@
 \alias{CST_SelectPeriodOnData}
 \title{Select a period on Data on 's2dv_cube' objects}
 \usage{
-CST_SelectPeriodOnData(data, start, end, time_dim = "ftime", ncores = NULL)
+CST_SelectPeriodOnData(data, start, end, time_dim = "time", ncores = NULL)
 }
 \arguments{
-\item{data}{An 's2dv_cube' object as provided function \code{CST_Load} in 
-package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Start} or 
+\code{CST_Load} in package CSTools.}
 
 \item{start}{A parameter to defined the initial date of the period to select 
 from the data by providing a list of two elements: the initial date of the 
@@ -19,7 +19,7 @@ the data by providing a list of two elements: the final day of the period
 and the final month of the period.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute select the dates. By default, it is set to 'ftime'. More than one 
+compute select the dates. By default, it is set to 'time'. More than one 
 dimension name matching the dimensions provided in the object 
 \code{data$data} can be specified.}
 
@@ -36,14 +36,14 @@ Auxiliary function to subset data for a specific period.
 \examples{
 exp <- NULL
 exp$data <- array(rnorm(5 * 3 * 214 * 2),
-                 c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
+                 c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
-dim(exp$attrs$Dates) <- c(ftime = 214, sdate = 3)
+dim(exp$attrs$Dates) <- c(time = 214, sdate = 3)
 class(exp) <- 's2dv_cube'
 Period <- CST_SelectPeriodOnData(exp, start = list(21, 6), end = list(21, 9))
 }

@@ -21,11 +21,11 @@ Threshold(
 \item{data}{A multidimensional array with named dimensions.}
 
 \item{threshold}{A single scalar or vector indicating the relative 
-threshold(s).}
+threshold(s). It must contain values between 0 and 1.}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to defined the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -39,7 +39,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the temporal 
-dimension. By default, it is set to 'ftime'. More than one dimension name 
+dimension. By default, it is set to 'time'. More than one dimension name 
 matching the dimensions provided in the object \code{data$data} can be 
 specified. This dimension is required to subset the data in a requested 
 period.}

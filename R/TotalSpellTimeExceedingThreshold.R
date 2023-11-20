@@ -6,9 +6,9 @@
 #'This function allows to compute indicators widely used in Climate Services, 
 #'such as:
 #'\itemize{
-#' \code{WSDI}{Warm Spell Duration Index that count the total number of days 
-#'             with at least 6 consecutive days when the daily temperature 
-#'             maximum exceeds its 90th percentile.}
+#'  \item{'WSDI', Warm Spell Duration Index that count the total number of days 
+#'        with at least 6 consecutive days when the daily temperature 
+#'        maximum exceeds its 90th percentile.}
 #'}
 #'This function requires the data and the threshold to be in the same units. The 
 #'90th percentile can be translate into absolute values given a reference dataset 
@@ -16,8 +16,8 @@
 #'by using function \code{AbsToProbs}. See section @examples.
 #'@seealso [Threshold()] and [AbsToProbs()].
 #'
-#'@param data An 's2dv_cube' object as provided by function \code{CST_Load} in 
-#'  package CSTools.
+#'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
+#'  \code{CST_Load} in package CSTools.
 #'@param threshold If only one threshold is used, it can be an 's2dv_cube' 
 #'  object or a multidimensional array with named dimensions. It must be in the 
 #'  same units and with the common dimensions of the same length as parameter 
@@ -42,32 +42,42 @@
 #'  the period and the final month of the period. By default it is set to NULL 
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute the indicator. By default, it is set to 'ftime'. It can only
+#'  compute the indicator. By default, it is set to 'time'. It can only
 #'  indicate one time dimension.
 #'@param ncores An integer indicating the number of cores to use in parallel 
 #'  computation.
 #'
 #'@return An 's2dv_cube' object containing the number of days that are part of a
-#'spell within a threshold in element \code{data}.
+#'spell within a threshold in element \code{data} with dimensions of the input 
+#'parameter 'data' except the dimension where the indicator has been computed.
+#'The 'Dates' array is updated to the dates corresponding to the beginning of 
+#'the aggregated time period. A new element called 'time_bounds' will be added  
+#'into the 'attrs' element in the 's2dv_cube' object. It consists of a list 
+#'containing two elements, the start and end dates of the aggregated period with 
+#'the same dimensions of 'Dates' element.
 #'
 #'@examples
 #'exp <- NULL
 #'exp$data <- array(rnorm(5 * 3 * 214 * 2)*23,
-#'                  c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+#'                  c(member = 5, sdate = 3, time = 214, lon = 2)) 
 #'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(exp$attrs$Dates) <- c(sdate = 3, time = 214)
 #'class(exp) <- 's2dv_cube'
-#'TTSET <- CST_TotalSpellTimeExceedingThreshold(exp, threshold = 23, spell = 3)
+#'TTSET <- CST_TotalSpellTimeExceedingThreshold(exp, threshold = 23, spell = 3,
+#'                                              start = list(21, 4), 
+#'                                              end = list(21, 6))
 #' 
 #'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>',
                                                  start = NULL, end = NULL,
-                                                 time_dim = 'ftime',
+                                                 time_dim = 'time',
                                                  ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
@@ -95,19 +105,42 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
       threshold[[2]] <- threshold[[2]]$data
     }
   }
+
+  Dates <- data$attrs$Dates
   
-  total <- TotalSpellTimeExceedingThreshold(data$data, data$attrs$Dates,
+  total <- TotalSpellTimeExceedingThreshold(data$data, Dates,
                                             threshold = threshold, spell = spell, 
                                             op = op, start = start, end = end, 
                                             time_dim = time_dim, 
                                             ncores = ncores)
   data$data <- total
-  if (!is.null(start) && !is.null(end)) {
-    data$attrs$Dates <- SelectPeriodOnDates(dates = data$attrs$Dates,
-                                            start = start, end = end,
-                                            time_dim = time_dim, 
-                                            ncores = ncores)
+  data$dims <- dim(total)
+  data$coords[[time_dim]] <- NULL
+
+  if (!is.null(Dates)) {
+    if (!is.null(start) && !is.null(end)) {
+      Dates <- SelectPeriodOnDates(dates = Dates, start = start, end = end,
+                                   time_dim = time_dim, ncores = ncores)
+    }
+    if (is.null(dim(Dates))) {
+      warning("Element 'Dates' has NULL dimensions. They will not be ", 
+              "subset and 'time_bounds' will be missed.")
+      data$attrs$Dates <- Dates
+    } else {
+      # Create time_bounds
+      time_bounds <- NULL
+      time_bounds$start <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
+                                                 indices = 1, drop = 'selected')
+      time_bounds$end <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
+                                               indices = dim(Dates)[time_dim], 
+                                               drop = 'selected')
+
+      # Add Dates in attrs
+      data$attrs$Dates <- time_bounds$start
+      data$attrs$time_bounds <- time_bounds
+    }
   }
+
   return(data)
 }
 #'Total Spell Time Exceeding Threshold
@@ -118,9 +151,9 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
 #'This function allows to compute indicators widely used in Climate Services, 
 #'such as:
 #'\itemize{
-#' \code{WSDI}{Warm Spell Duration Index that count the total number of days 
-#'             with at least 6 consecutive days when the daily temperature 
-#'             maximum exceeds its 90th percentile.}
+#'  \item{'WSDI', Warm Spell Duration Index that count the total number of days 
+#'        with at least 6 consecutive days when the daily temperature 
+#'        maximum exceeds its 90th percentile.}
 #'}
 #'This function requires the data and the threshold to be in the same units. The 
 #'90th percentile can be translate into absolute values given a reference 
@@ -143,9 +176,9 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
 #'  are used it has to be a vector of a pair of two logical operators: 
 #'  c('<', '>'), c('<', '>='), c('<=', '>'), c('<=', '>='), c('>', '<'), 
 #'  c('>', '<='), c('>=', '<'),c('>=', '<=')).
-#'@param dates A vector of dates or a multidimensional array of dates with named
-#'  dimensions matching the dimensions on parameter 'data'. By default it is 
-#'  NULL, to select a period this parameter must be provided.
+#'@param dates A multidimensional array of dates with named dimensions matching 
+#'  the temporal dimensions on parameter 'data'. By default it is NULL, to  
+#'  select aperiod this parameter must be provided.
 #'@param start An optional parameter to defined the initial date of the period 
 #'  to select from the data by providing a list of two elements: the initial 
 #'  date of the period and the initial month of the period. By default it is set
@@ -156,7 +189,7 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
 #'  the period and the final month of the period. By default it is set to NULL 
 #'  and the indicator is computed using all the data provided in \code{data}.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute the indicator. By default, it is set to 'ftime'. It can only
+#'  compute the indicator. By default, it is set to 'time'. It can only
 #'  indicate one time dimension.
 #'@param ncores An integer indicating the number of cores to use in parallel 
 #'  computation.
@@ -171,15 +204,25 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
 #'values by values exceeding the threshold.
 
 #'@examples
-#'data <- array(rnorm(120), c(member = 1, sdate = 2, ftime = 20, lat = 4))
-#'threshold <- array(rnorm(4), c(lat = 4))
-#'total <- TotalSpellTimeExceedingThreshold(data, threshold, spell = 6)
+#'data <- array(1:100, c(member = 5, sdate = 3, time = 214, lon = 2))
+#'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
+#'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
+#'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
+#'dim(Dates) <- c(sdate = 3, time = 214)
+#'
+#'threshold <- array(1:4, c(lat = 4))
+#'total <- TotalSpellTimeExceedingThreshold(data, threshold, dates = Dates, 
+#'                                          spell = 6, start = list(21, 4), 
+#'                                          end = list(21, 6))
 #' 
 #'@import multiApply
 #'@export
 TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>',
                                              dates = NULL, start = NULL, end = NULL, 
-                                             time_dim = 'ftime', ncores = NULL) {
+                                             time_dim = 'time', ncores = NULL) {
   # data
   if (is.null(data)) {
     stop("Parameter 'data' cannot be NULL.")
@@ -311,8 +354,11 @@ TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>',
     }
   }
   # dates
-  if (!is.null(dates)) {
-    if (!is.null(start) && !is.null(end)) {
+  if (!is.null(start) && !is.null(end)) {
+    if (is.null(dates)) {
+      warning("Parameter 'dates' is NULL and the average of the ",
+              "full data provided in 'data' is computed.")
+    } else {
       if (!any(c(is.list(start), is.list(end)))) {
         stop("Parameter 'start' and 'end' must be lists indicating the ",
              "day and the month of the period start and end.")
@@ -333,6 +379,14 @@ TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>',
                                                  time_dim = time_dim, ncores = ncores)
           }
         }
+      }
+      if (!is.null(dim(dates))) {
+        data <- SelectPeriodOnData(data = data, dates = dates, start = start, 
+                                   end = end, time_dim = time_dim, 
+                                   ncores = ncores)
+      } else {
+        warning("Parameter 'dates' must have named dimensions if 'start' and ",
+                "'end' are not NULL. All data will be used.")
       }
       data <- SelectPeriodOnData(data, dates, start, end, 
                                  time_dim = time_dim, ncores = ncores)

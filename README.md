@@ -3,7 +3,18 @@ CSIndicators
 
 #### Sectoral Indicators for Climate Services Based on Sub-Seasonal to Decadal Climate Predictions
 
-Set of generalised tools for the flexible computation of climate related indicators defined by the user. Each method represents a specific mathematical approach which is combined with the possibility to select an arbitrary time period to define the indicator. This enables a wide range of possibilities to tailor the most suitable indicator for each particular climate service application (agriculture, food security, energy, water management…). This package is intended for sub-seasonal, seasonal and decadal climate predictions, but its methods are also applicable to other time-scales, provided the dimensional structure of the input is maintained. Additionally, the outputs of the functions in this package are compatible with [CSTools](https://earth.bsc.es/gitlab/external/cstools). 
+Set of generalised tools for the flexible computation of climate related indicators defined by the user. Each method represents a specific mathematical approach which is combined with the possibility to select an arbitrary time period to define the indicator. This enables a wide range of possibilities to tailor the most suitable indicator for each particular climate service application (agriculture, food security, energy, water management…). This package is intended for sub-seasonal, seasonal and decadal climate predictions, but its methods are also applicable to other time-scales, provided the dimensional structure of the input is maintained. Additionally, the outputs of the functions in this package are compatible with [CSTools](https://earth.bsc.es/gitlab/external/cstools).  
+
+How to cite
+-----------
+
+> Pérez-Zanón, N., Ho, A. Chou, C., Lledó, L., Marcos-Matamoros, R., Rifà, E. and González-Reviriego, N. (2023). CSIndicators: Get tailored climate indicators for applications in your sector. Climate Services. https://doi.org/10.1016/j.cliser.2023.100393  
+
+For details in the methodologies see:  
+
+> Pérez-Zanón, N., Caron, L.-P., Terzago, S., Van Schaeybroeck, B., Lledó, L., Manubens, N., Roulin, E., Alvarez-Castro, M. C., Batté, L., Bretonnière, P.-A., Corti, S., Delgado-Torres, C., Domínguez, M., Fabiano, F., Giuntoli, I., von Hardenberg, J., Sánchez-García, E., Torralba, V., and Verfaillie, D.: Climate Services Toolbox (CSTools) v4.0: from climate forecasts to climate forecast information, Geosci. Model Dev., 15, 6115–6142, https://doi.org/10.5194/gmd-15-6115-2022, 2022.  
+Chou, C., R. Marcos-Matamoros, L. Palma Garcia, N. Pérez-Zanón, M. Teixeira, S. Silva, N. Fontes, A. Graça, A. Dell'Aquila, S. Calmanti and N. González-Reviriego (2023). Advanced seasonal predictions for vine management based on bioclimatic indicators tailored to the wine sector. Climate Services, 30, 100343, https://doi.org/10.1016/j.cliser.2023.100343.  
+Lledó, Ll., V. Torralba, A. Soret, J. Ramon and F.J. Doblas-Reyes (2019). Seasonal forecasts of wind power generation. Renewable Energy, 143, 91-100, https://doi.org/10.1016/j.renene.2019.04.135.
 
 Installation
 ------------

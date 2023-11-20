@@ -23,9 +23,9 @@ QThreshold(
 units as parameter 'data' and with the common dimensions of the element 
 'data' of the same length.}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to defined the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -39,7 +39,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the temporal 
-dimension. By default, it is set to 'ftime'. More than one dimension name 
+dimension. By default, it is set to 'time'. More than one dimension name 
 matching the dimensions provided in the object \code{data$data} can be 
 specified. This dimension is required to subset the data in a requested 
 period.}
@@ -82,7 +82,17 @@ and memb_dim parameters:
 \examples{
 threshold = 25
 data <- array(rnorm(5 * 3 * 20 * 2, mean = 26), 
-             c(member = 5, sdate = 3, time = 20, lon = 2)) 
-thres_q <- QThreshold(data, threshold)
+             c(member = 5, sdate = 3, time = 214, lon = 2)) 
+
+Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(Dates) <- c(sdate = 3, time = 214)
+
+thres_q <- QThreshold(data, threshold, dates = Dates, time_dim = 'time',
+                     start = list(21, 4), end = list(21, 6))
 
 }

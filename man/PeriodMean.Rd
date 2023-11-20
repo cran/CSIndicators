@@ -17,9 +17,9 @@ PeriodMean(
 \arguments{
 \item{data}{A multidimensional array with named dimensions.}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to defined the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -33,7 +33,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. More than one 
+compute the indicator. By default, it is set to 'time'. More than one 
 dimension name matching the dimensions provided in the object 
 \code{data$data} can be specified.}
 
@@ -52,14 +52,23 @@ Period Mean computes the average (mean) of a given variable in a period.
 Providing temperature data, two agriculture indices can be obtained by using 
 this function:
 \itemize{
- \item\code{GST}{Growing Season average Temperature: The average 
-                 temperature  from April 1st to Octobe 31st}
- \item\code{SprTX}{Spring Average Maximum Temperature: The average daily 
-                   maximum temperature from April 1st to May 31st}
+ \item{'GST', Growing Season average Temperature: The average temperature 
+       from April 1st to Octobe 31st.}
+ \item{'SprTX', Spring Average Maximum Temperature: The average daily 
+       maximum temperature from April 1st to May 31st.}
 }
 }
 \examples{
-exp <- array(rnorm(56), dim = c(member = 7, ftime = 8))
-SA <- PeriodMean(exp, time_dim = 'ftime')
+data <- array(rnorm(45), dim = c(member = 7, sdate = 4, time = 3))
+Dates <- c(seq(as.Date("2000-11-01", "\%Y-\%m-\%d", tz = "UTC"), 
+              as.Date("2001-01-01", "\%Y-\%m-\%d", tz = "UTC"), by = "month"),
+          seq(as.Date("2001-11-01", "\%Y-\%m-\%d", tz = "UTC"), 
+              as.Date("2002-01-01", "\%Y-\%m-\%d", tz = "UTC"), by = "month"),
+          seq(as.Date("2002-11-01", "\%Y-\%m-\%d", tz = "UTC"), 
+              as.Date("2003-01-01", "\%Y-\%m-\%d", tz = "UTC"), by = "month"),
+          seq(as.Date("2003-11-01", "\%Y-\%m-\%d", tz = "UTC"), 
+              as.Date("2004-01-01", "\%Y-\%m-\%d", tz = "UTC"), by = "month"))
+dim(Dates) <- c(sdate = 4, time = 3)
+SA <- PeriodMean(data, dates = Dates, start = list(01, 12), end = list(01, 01))
 
 }

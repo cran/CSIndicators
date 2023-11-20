@@ -11,14 +11,14 @@ CST_AccumulationExceedingThreshold(
   diff = FALSE,
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   na.rm = FALSE,
   ncores = NULL
 )
 }
 \arguments{
-\item{data}{An 's2dv_cube' object as provided by function \code{CST_Load} in
-package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Start} or 
+\code{CST_Load} in package CSTools.}
 
 \item{threshold}{If only one threshold is used, it can be an 's2dv_cube' 
 object or a multidimensional array with named dimensions. It must be in the 
@@ -51,7 +51,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. It can only
+compute the indicator. By default, it is set to 'time'. It can only
 indicate one time dimension.}
 
 \item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) 
@@ -63,7 +63,12 @@ computation.}
 \value{
 An 's2dv_cube' object containing the aggregated values in the element
 \code{data} with dimensions of the input parameter 'data' except the dimension
-where the indicator has been computed.
+where the indicator has been computed. The 'Dates' array is updated to 
+the dates corresponding to the beginning of the aggregated time period. A new 
+element called 'time_bounds' will be added into the 'attrs' element in the 
+'s2dv_cube' object. It consists of a list containing two elements, the start 
+and end dates of the aggregated period with the same dimensions of 'Dates' 
+element.
 }
 \description{
 The accumulation (sum) of a variable in the days (or time steps) that the 
@@ -74,15 +79,25 @@ use a percentile as a scalar, the function \code{Threshold} or
 following agriculture indices for heat stress can be obtained by using this 
 function:
 \itemize{
- \item\code{GDD}{Summation of daily differences between daily average 
-                 temperatures and 10°C between April 1st and October 31st}
+ \item{'GDD', Summation of daily differences between daily average 
+       temperatures and 10°C between April 1st and October 31st.}
 }
 }
 \examples{
 exp <- NULL
-exp$data <- array(rnorm(216)*200, dim = c(dataset = 1, member = 2, sdate = 3, 
-                 ftime = 9, lat = 2, lon = 2))
+exp$data <- array(abs(rnorm(5 * 3 * 214 * 2)*100), 
+                 c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 class(exp) <- 's2dv_cube'
-DOT <- CST_AccumulationExceedingThreshold(exp, threshold = 280)
+Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(Dates) <- c(sdate = 3, time = 214)
+exp$attrs$Dates <- Dates
+AT <- CST_AccumulationExceedingThreshold(data = exp, threshold = 100,
+                                        start = list(21, 4), 
+                                        end = list(21, 6))
 
 }

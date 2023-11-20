@@ -9,7 +9,7 @@ AbsToProbs(
   dates = NULL,
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   memb_dim = "member",
   sdate_dim = "sdate",
   ncores = NULL
@@ -36,7 +36,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the temporal 
-dimension. By default, it is set to 'ftime'. More than one dimension name 
+dimension. By default, it is set to 'time'. More than one dimension name 
 matching the dimensions provided in the object \code{data$data} can be 
 specified. This dimension is required to subset the data in a requested 
 period.}
@@ -62,17 +62,17 @@ Distribution Function excluding the corresponding initialization.
 }
 \examples{
 exp <- array(rnorm(216), dim = c(dataset = 1, member = 2, sdate = 3, 
-                                ftime = 9, lat = 2, lon = 2))
+                                time = 9, lat = 2, lon = 2))
 exp_probs <- AbsToProbs(exp)
 data <- array(rnorm(5 * 3 * 61 * 1),
-             c(member = 5, sdate = 3, ftime = 61, lon = 1)) 
+             c(member = 5, sdate = 3, time = 61, lon = 1)) 
 Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
               as.Date("30-06-2000", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
               as.Date("30-06-2001", format = "\%d-\%m-\%Y"), by = 'day'),
           seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
               as.Date("30-06-2002", format = "\%d-\%m-\%Y"), by = 'day'))
-dim(Dates) <- c(ftime = 61, sdate = 3)
+dim(Dates) <- c(time = 61, sdate = 3)
 exp_probs <- AbsToProbs(data, dates = Dates, start = list(21, 4), 
                        end = list(21, 6))
 

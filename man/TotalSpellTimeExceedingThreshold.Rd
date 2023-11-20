@@ -12,7 +12,7 @@ TotalSpellTimeExceedingThreshold(
   dates = NULL,
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   ncores = NULL
 )
 }
@@ -36,9 +36,9 @@ are used it has to be a vector of a pair of two logical operators:
 c('<', '>'), c('<', '>='), c('<=', '>'), c('<=', '>='), c('>', '<'), 
 c('>', '<='), c('>=', '<'),c('>=', '<=')).}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is 
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to defined the initial date of the period 
 to select from the data by providing a list of two elements: the initial 
@@ -52,7 +52,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. It can only
+compute the indicator. By default, it is set to 'time'. It can only
 indicate one time dimension.}
 
 \item{ncores}{An integer indicating the number of cores to use in parallel 
@@ -71,9 +71,9 @@ exceed) a threshold are calculated with \code{TotalSpellTimeExceedingThreshold}.
 This function allows to compute indicators widely used in Climate Services, 
 such as:
 \itemize{
-\code{WSDI}{Warm Spell Duration Index that count the total number of days 
-            with at least 6 consecutive days when the daily temperature 
-            maximum exceeds its 90th percentile.}
+ \item{'WSDI', Warm Spell Duration Index that count the total number of days 
+       with at least 6 consecutive days when the daily temperature 
+       maximum exceeds its 90th percentile.}
 }
 This function requires the data and the threshold to be in the same units. The 
 90th percentile can be translate into absolute values given a reference 
@@ -86,9 +86,19 @@ different behaviour consider to modify the 'data' input by substituting NA
 values by values exceeding the threshold.
 }
 \examples{
-data <- array(rnorm(120), c(member = 1, sdate = 2, ftime = 20, lat = 4))
-threshold <- array(rnorm(4), c(lat = 4))
-total <- TotalSpellTimeExceedingThreshold(data, threshold, spell = 6)
+data <- array(1:100, c(member = 5, sdate = 3, time = 214, lon = 2))
+Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(Dates) <- c(sdate = 3, time = 214)
+
+threshold <- array(1:4, c(lat = 4))
+total <- TotalSpellTimeExceedingThreshold(data, threshold, dates = Dates, 
+                                         spell = 6, start = list(21, 4), 
+                                         end = list(21, 6))
 
 }
 \seealso{

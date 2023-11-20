@@ -25,9 +25,9 @@ respectively. Classes \code{'I/II'} and \code{'II/III'} indicate
 intermediate turbines that fit both classes. More details of the five
 turbines and a plot of its power curves can be found in Lledó et al. (2019).}
 
-\item{dates}{A vector of dates or a multidimensional array of dates with named
-dimensions matching the dimensions on parameter 'data'. By default it is
-NULL, to select a period this parameter must be provided.}
+\item{dates}{A multidimensional array of dates with named dimensions matching 
+the temporal dimensions on parameter 'data'. By default it is NULL, to  
+select aperiod this parameter must be provided.}
 
 \item{start}{An optional parameter to defined the initial date of the period
 to select from the data by providing a list of two elements: the initial
@@ -41,7 +41,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to
-compute the indicator. By default, it is set to 'ftime'. More than one
+compute the indicator. By default, it is set to 'time'. More than one
 dimension name matching the dimensions provided in the object
 \code{data$data} can be specified.}
 
@@ -65,8 +65,19 @@ different power curves that span different IEC classes can be selected (see
 below).
 }
 \examples{
-wind <- rweibull(n = 100, shape = 2, scale = 6)
-WCF <- WindCapacityFactor(wind, IEC_class = "III")
+wind <- array(rweibull(n = 32100, shape = 2, scale = 6), 
+             c(member = 5, sdate = 3, time = 214, lon = 2, lat = 5))
+
+Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
+          seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
+              as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(Dates) <- c(sdate = 3, time = 214)
+
+WCF <- WindCapacityFactor(wind, IEC_class = "III", dates = Dates, 
+                         start = list(21, 4), end = list(21, 6))
 
 }
 \references{

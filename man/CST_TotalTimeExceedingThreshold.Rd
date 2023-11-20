@@ -10,14 +10,14 @@ CST_TotalTimeExceedingThreshold(
   op = ">",
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   na.rm = FALSE,
   ncores = NULL
 )
 }
 \arguments{
-\item{data}{An 's2dv_cube' object as provided by function \code{CST_Load} in 
-package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Start} or 
+\code{CST_Load} in package CSTools.}
 
 \item{threshold}{If only one threshold is used, it can be an 's2dv_cube' 
 object or a multidimensional array with named dimensions. It must be in the 
@@ -46,7 +46,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. It can only
+compute the indicator. By default, it is set to 'time'. It can only
 indicate one time dimension.}
 
 \item{na.rm}{A logical value indicating whether to ignore NA values (TRUE) or 
@@ -58,7 +58,13 @@ computation.}
 \value{
 An 's2dv_cube' object containing in element \code{data} the total 
 number of the corresponding units of the data frequency that a variable is 
-exceeding a threshold during a period.
+exceeding a threshold during a period with dimensions of the input parameter 
+'data' except the dimension where the indicator has been computed. The 
+'Dates' array is updated to the dates corresponding to the beginning of the 
+aggregated time period. A new element called 'time_bounds' will be added into 
+the 'attrs' element in the 's2dv_cube' object. It consists of a list 
+containing two elements, the start and end dates of the aggregated period with 
+the same dimensions of 'Dates' element.
 }
 \description{
 The Total Time of a variable exceeding (or not) a Threshold. It returns the  
@@ -70,28 +76,30 @@ variable units, i.e. to use a percentile as a scalar, the function
 Providing maximum temperature daily data, the following agriculture 
 indices for heat stress can be obtained by using this function:
 \itemize{
- \item\code{SU35}{Total count of days when daily maximum temperatures exceed 
-                  35°C in the seven months from the start month given (e.g. 
-                  from April to October for start month of April).}
- \item\code{SU36}{Total count of days when daily maximum temperatures exceed 
-                  36 between June 21st and September 21st}
- \item\code{SU40}{Total count of days when daily maximum temperatures exceed 
-                  40 between June 21st and September 21st}
- \item\code{Spr32}{Total count of days when daily maximum temperatures exceed
-                   32 between April 21st and June 21st}
+ \item{'SU35', Total count of days when daily maximum temperatures exceed 
+       35°C in the seven months from the start month given (e.g. from April 
+       to October for start month of April).}
+ \item{'SU36', Total count of days when daily maximum temperatures exceed 
+       36 between June 21st and September 21st.}
+ \item{'SU40', Total count of days when daily maximum temperatures exceed 
+       40 between June 21st and September 21st.}
+ \item{'Spr32', Total count of days when daily maximum temperatures exceed
+       32 between April 21st and June 21st.}
 }
 }
 \examples{
 exp <- NULL
-exp$data <- array(abs(rnorm(5 * 3 * 214 * 2)*280),
-                 c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+exp$data <- array(rnorm(5 * 3 * 214 * 2)*23,
+                 c(member = 5, sdate = 3, time = 214, lon = 2)) 
 exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(exp$attrs$Dates) <- c(sdate = 3, time = 214)
 class(exp) <- 's2dv_cube'
-DOT <- CST_TotalTimeExceedingThreshold(exp, threshold = 280)
+DOT <- CST_TotalTimeExceedingThreshold(exp, threshold = 23, start = list(21, 4), 
+                                      end = list(21, 6))
 
 }

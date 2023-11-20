@@ -11,13 +11,13 @@ CST_TotalSpellTimeExceedingThreshold(
   op = ">",
   start = NULL,
   end = NULL,
-  time_dim = "ftime",
+  time_dim = "time",
   ncores = NULL
 )
 }
 \arguments{
-\item{data}{An 's2dv_cube' object as provided by function \code{CST_Load} in 
-package CSTools.}
+\item{data}{An 's2dv_cube' object as provided function \code{CST_Start} or 
+\code{CST_Load} in package CSTools.}
 
 \item{threshold}{If only one threshold is used, it can be an 's2dv_cube' 
 object or a multidimensional array with named dimensions. It must be in the 
@@ -48,7 +48,7 @@ the period and the final month of the period. By default it is set to NULL
 and the indicator is computed using all the data provided in \code{data}.}
 
 \item{time_dim}{A character string indicating the name of the dimension to 
-compute the indicator. By default, it is set to 'ftime'. It can only
+compute the indicator. By default, it is set to 'time'. It can only
 indicate one time dimension.}
 
 \item{ncores}{An integer indicating the number of cores to use in parallel 
@@ -56,7 +56,13 @@ computation.}
 }
 \value{
 An 's2dv_cube' object containing the number of days that are part of a
-spell within a threshold in element \code{data}.
+spell within a threshold in element \code{data} with dimensions of the input 
+parameter 'data' except the dimension where the indicator has been computed.
+The 'Dates' array is updated to the dates corresponding to the beginning of 
+the aggregated time period. A new element called 'time_bounds' will be added  
+into the 'attrs' element in the 's2dv_cube' object. It consists of a list 
+containing two elements, the start and end dates of the aggregated period with 
+the same dimensions of 'Dates' element.
 }
 \description{
 The number of days (when daily data is provided) that are part of a spell 
@@ -65,9 +71,9 @@ exceed) a threshold are calculated with \code{TotalSpellTimeExceedingThreshold}.
 This function allows to compute indicators widely used in Climate Services, 
 such as:
 \itemize{
-\code{WSDI}{Warm Spell Duration Index that count the total number of days 
-            with at least 6 consecutive days when the daily temperature 
-            maximum exceeds its 90th percentile.}
+ \item{'WSDI', Warm Spell Duration Index that count the total number of days 
+       with at least 6 consecutive days when the daily temperature 
+       maximum exceeds its 90th percentile.}
 }
 This function requires the data and the threshold to be in the same units. The 
 90th percentile can be translate into absolute values given a reference dataset 
@@ -77,15 +83,18 @@ by using function \code{AbsToProbs}. See section @examples.
 \examples{
 exp <- NULL
 exp$data <- array(rnorm(5 * 3 * 214 * 2)*23,
-                 c(member = 5, sdate = 3, ftime = 214, lon = 2)) 
+                 c(member = 5, sdate = 3, time = 214, lon = 2)) 
 exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2000", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2001", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2001", format = "\%d-\%m-\%Y"), by = 'day'),
                     seq(as.Date("01-05-2002", format = "\%d-\%m-\%Y"), 
                         as.Date("30-11-2002", format = "\%d-\%m-\%Y"), by = 'day'))
+dim(exp$attrs$Dates) <- c(sdate = 3, time = 214)
 class(exp) <- 's2dv_cube'
-TTSET <- CST_TotalSpellTimeExceedingThreshold(exp, threshold = 23, spell = 3)
+TTSET <- CST_TotalSpellTimeExceedingThreshold(exp, threshold = 23, spell = 3,
+                                             start = list(21, 4), 
+                                             end = list(21, 6))
 
 }
 \seealso{

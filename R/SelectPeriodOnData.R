@@ -2,8 +2,8 @@
 #'
 #' Auxiliary function to subset data for a specific period.
 #'
-#'@param data An 's2dv_cube' object as provided function \code{CST_Load} in 
-#'  package CSTools.
+#'@param data An 's2dv_cube' object as provided function \code{CST_Start} or 
+#'  \code{CST_Load} in package CSTools.
 #'@param start A parameter to defined the initial date of the period to select 
 #'  from the data by providing a list of two elements: the initial date of the 
 #'  period and the initial month of the period.
@@ -11,7 +11,7 @@
 #'  the data by providing a list of two elements: the final day of the period 
 #'  and the final month of the period.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute select the dates. By default, it is set to 'ftime'. More than one 
+#'  compute select the dates. By default, it is set to 'time'. More than one 
 #'  dimension name matching the dimensions provided in the object 
 #'  \code{data$data} can be specified.
 #'@param ncores An integer indicating the number of cores to use in parallel 
@@ -23,19 +23,19 @@
 #'@examples
 #'exp <- NULL
 #'exp$data <- array(rnorm(5 * 3 * 214 * 2),
-#'                  c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
+#'                  c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 #'exp$attrs$Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'                     seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'                         as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
-#'dim(exp$attrs$Dates) <- c(ftime = 214, sdate = 3)
+#'dim(exp$attrs$Dates) <- c(time = 214, sdate = 3)
 #'class(exp) <- 's2dv_cube'
 #'Period <- CST_SelectPeriodOnData(exp, start = list(21, 6), end = list(21, 9))
 #'@import multiApply
 #'@export
-CST_SelectPeriodOnData <- function(data, start, end, time_dim = 'ftime', 
+CST_SelectPeriodOnData <- function(data, start, end, time_dim = 'time', 
                                    ncores = NULL) {
   # Check 's2dv_cube'
   if (!inherits(data, 's2dv_cube')) {
@@ -79,7 +79,7 @@ CST_SelectPeriodOnData <- function(data, start, end, time_dim = 'ftime',
 #'  to select from the data. The first element is the final day of the period 
 #'  and the second element is the final month of the period.
 #'@param time_dim A character string indicating the name of the dimension to 
-#'  compute select the dates. By default, it is set to 'ftime'. Parameters 
+#'  compute select the dates. By default, it is set to 'time'. Parameters 
 #'  'data' and 'dates'
 #'@param ncores An integer indicating the number of cores to use in parallel 
 #'  computation.
@@ -90,19 +90,20 @@ CST_SelectPeriodOnData <- function(data, start, end, time_dim = 'ftime',
 #'
 #'@examples
 #'data <- array(rnorm(5 * 3 * 214 * 2),
-#'              c(memb = 5, sdate = 3, ftime = 214, lon = 2)) 
+#'              c(memb = 5, sdate = 3, time = 214, lon = 2)) 
 #'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
 #'           seq(as.Date("01-05-2001", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2001", format = "%d-%m-%Y"), by = 'day'),
 #'           seq(as.Date("01-05-2002", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
-#'dim(Dates) <- c(ftime = 214, sdate = 3)
+#'dim(Dates) <- c(time = 214, sdate = 3)
 #'Period <- SelectPeriodOnData(data, Dates, start = list(21, 6), end = list(21, 9))
 #'@import multiApply
+#'@importFrom ClimProjDiags Subset
 #'@export
 SelectPeriodOnData <- function(data, dates, start, end, 
-                               time_dim = 'ftime', ncores = NULL) {
+                               time_dim = 'time', ncores = NULL) {
   if (is.null(dim(dates))) {
     dim(dates) <- length(dates)
     names(dim(dates)) <- time_dim
@@ -149,10 +150,9 @@ SelectPeriodOnData <- function(data, dates, start, end,
   names_data <- sort(names(dim(data)))
   if (!all(names_res %in% names_data)) {
     dim_remove <- names_res[-which(names_res %in% names_data)]
-    res <- .arraysubset(res, dim = dim_remove, value = 1)
-    dim(res) <- dim(res)[-which(names(dim(res)) %in% dim_remove)]
+    indices <- as.list(rep(1, length(dim_remove)))
+    res <- Subset(res, along = dim_remove, indices, drop = 'selected')
   }
-
   pos <- match(names(dim(data)), names(dim(res)))
   res <- aperm(res, pos)
   return(res)

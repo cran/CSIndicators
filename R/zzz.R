@@ -24,35 +24,6 @@
   return(position)
 }
 
-# Function to subset dimension indices of an array
-.arraysubset <- function(x, dim, value, drop = FALSE) { 
-  indices <- rep(list(bquote()), length(dim(x)))
-  if (is.character(dim)) {
-    dim <- which(names(dim(x)) %in% dim)
-  }
-  indices[dim] <- value
-  call <- as.call(c(list(as.name("["), quote(x)), indices, drop = drop))
-  eval(call)
-}
-
-# Function to insert a dimension in an array
-.insertdim <- function(data, posdim, lendim, name = NULL) {
-  names(lendim) <- name
-  data <- array(data, dim = c(dim(data), lendim))
-  ## Reorder dimension
-  if (posdim == 1) {
-    order <- c(length(dim(data)), 1:(length(dim(data)) - 1))
-    data <- aperm(data, order)
-  } else if (posdim == length(dim(data))) {  # last dim
-
-  } else { # middle dim
-    order <- c(1:(posdim - 1), length(dim(data)), posdim:(length(dim(data)) - 1))
-    data <- aperm(data, order)
-  }
-  return(data)
-}
-
-
 #=======================
 # Read a powercurve file
 # Create the approximation function
@@ -88,4 +59,50 @@ wind2CF <- function(wind, pc) {
   power <- wind2power(wind, pc)
 	CF <- power / pc$attr$RatedPower
 	return(CF)
+}
+
+.KnownLonNames <- function() {
+  known_lon_names <- c('lon', 'lons', 'longitude', 'x', 'i', 'nav_lon')
+}
+
+.KnownLatNames <- function() {
+  known_lat_names <- c('lat', 'lats', 'latitude', 'y', 'j', 'nav_lat')
+}
+
+.return2list <- function(data1, data2 = NULL) {
+  if (is.null(data1) & is.null(data2)) {
+    return(NULL)
+  } else if (is.null(data2)) {
+    return(list(data1))
+  } else {
+    return(list(data1, data2))
+  }
+}
+
+# Function that creates a mask array from dates for the whole year
+.datesmask <- function(dates, frequency = 'monthly') {
+  years <- format(dates, "%Y")
+  ini <- as.Date(paste(min(years), 01, 01, sep = '-'))
+  end <- as.Date(paste(max(years), 12, 31, sep = '-'))
+  daily <- as.Date(seq(ini, end, by = "day"))
+  if (frequency == 'monthly') {
+    days <- as.numeric(format(daily, "%d"))
+    monthly <- daily[which(days == 1)]
+    dates_mask <- array(0, dim = length(monthly))
+    for (dd in 1:length(dates)) {
+      year <- format(dates[dd], "%Y")
+      month <- format(dates[dd], "%m")
+      ii <- which(monthly == as.Date(paste(year, month, 01, sep = '-')))
+      dates_mask[ii] <- 1
+    }
+  } else {
+    # daily
+    dates_mask <- array(0, dim = length(daily))
+    for (dd in 1:length(dates)) {
+      ii <- which(daily == dates[dd])
+      dates_mask[ii] <- 1
+    }
+  }
+  
+  return(dates_mask)
 }
