@@ -1,3 +1,11 @@
+# CSIndicators 1.1.1 (Release date: 2024-01-24)  
+
+### Fixes
+- Corrected error in SelectPeriodOnDates to allow dates to be transposed
+
+### Other
+- Included CITATION file in the pacakge
+
 # CSIndicators 1.1.0 (Release date: 2023-11-20)  
 
 ### Fixes  

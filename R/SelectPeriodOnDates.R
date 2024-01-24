@@ -19,8 +19,6 @@
 #'@return A multidimensional array with named dimensions containing the subset of 
 #'the vector dates during the period requested from \code{start} to \code{end}.
 #'
-#'@import multiApply
-#'
 #'@examples
 #'Dates <- c(seq(as.Date("01-05-2000", format = "%d-%m-%Y"), 
 #'               as.Date("30-11-2000", format = "%d-%m-%Y"), by = 'day'),
@@ -30,6 +28,8 @@
 #'               as.Date("30-11-2002", format = "%d-%m-%Y"), by = 'day'))
 #'dim(Dates) <- c(time = 214, sdate = 3)
 #'Period <- SelectPeriodOnDates(Dates, start = list(21, 6), end = list(21, 9))
+#'@import multiApply
+#'@importFrom s2dv Reorder
 #'@export
 SelectPeriodOnDates <- function(dates, start, end,
                                 time_dim = 'time', ncores = NULL) {
@@ -45,6 +45,12 @@ SelectPeriodOnDates <- function(dates, start, end,
                ini_day = start[[1]], ini_month = start[[2]],
                end_day = end[[1]], end_month = end[[2]],
                ncores = ncores)$output1
+  reorder <- FALSE
+  if (which(names(dim(dates)) == time_dim) != 1) {
+    dimdates <- names(dim(dates))
+    dates <- Reorder(dates, c(time_dim, names(dim(dates))[which(names(dim(dates)) != time_dim)]))
+    reorder <- TRUE
+  }
   # when 29Feb is included the length of the output changes:
   regular <- Apply(list(res), target_dims = time_dim,
                    fun = sum, ncores = ncores)$output1
@@ -64,12 +70,11 @@ SelectPeriodOnDates <- function(dates, start, end,
                      }, ncores = ncores)$output1
     res <- as.POSIXct(res, origin = '1970-01-01', tz = 'UTC')  
   } else {
-    if (!all(names(dim(res)) == names(dim(dates)))) {
-      pos <- match(names(dim(dates)), names(dim(res)))
-      res <- aperm(res, pos)
-    }  
     res <- dates[res]
     dim(res) <- dims
+    if (reorder) {
+      res <- Reorder(res, dimdates)
+    }
   }
   return(res)
 }

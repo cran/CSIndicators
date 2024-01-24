@@ -41,61 +41,76 @@ Functions documentation can be found [here](https://CRAN.R-project.org/package=C
 
 | Function                       | CST version                        | Indicators                      |
 |--------------------------------|------------------------------------|---------------------------------|
-|PeriodMean                      |CST_PeriodMean                      |GST, SprTX, DTR                  |
-|PeriodAccumulation              |CST_PeriodAccumulation              |SprR, HarR, PRCPTOT              | 
-|AccumulationExceedingThreshold  |CST_AccumulationExceedingThreshold  |GDD, R95pTOT, R99pTOT            |
-|TotalTimeExceedingThreshold     |CST_TotalTimeExceedingThreshold     |SU35, SU, FD, ID, TR, R10mm, Rnmm|
-|TotalSpellTimeExceedingThreshold|CST_TotalSpellTimeExceedingThreshold|WSDI, CSDI                       |
-|WindCapacityFactor              |CST_WindCapacityFactor              |Wind Capacity Factor             |
-|WindPowerDensity                |CST_WindPowerDensity                |Wind Power Density               |
+|[PeriodMean](R/PeriodMean.R)    |CST_PeriodMean                      |GST, SprTX, DTR, BIO1, BIO2      |
+|[PeriodMax](R/PeriodMax.R)      |CST_PeriodMax                       |BIO5, BIO13                      |
+|[PeriodMin](R/PeriodMin.R)      |PeriodMin                           |BIO6, BIO14                      |
+|[PeriodVariance](R/PeriodVariance.R) |CST_PeriodVariance             |BIO4, BIO15                      |
+|[PeriodAccumulation](R/PeriodAccumulation.R) |CST_PeriodAccumulation |SprR, HarR, PRCPTOT, BIO16, ...  | 
+|[PeriodPET](R/PeriodPET.R)      |CST_PeriodPET                       |PET, SPEI                        | 
+|[PeriodStandardization](R/PeriodStandardization.R)    |CST_PeriodStandardization           |SPEI, SPI                        | 
+|[AccumulationExceedingThreshold](R/AccumulationExceedingThreshold.R)  |CST_AccumulationExceedingThreshold  |GDD, R95pTOT, R99pTOT            |
+|[TotalTimeExceedingThreshold](R/TotalTimeExceedingThreshold.R)     |CST_TotalTimeExceedingThreshold     |SU35, SU, FD, ID, TR, R10mm, Rnmm|
+|[TotalSpellTimeExceedingThreshold](R/TotalSpellTimeExceedingThreshold.R)|CST_TotalSpellTimeExceedingThreshold|WSDI, CSDI                       |
+|[WindCapacityFactor](R/WindCapacityFactor.R)              |CST_WindCapacityFactor              |Wind Capacity Factor             |
+|[WindPowerDensity](R/WindPowerDensity.R)                |CST_WindPowerDensity                |Wind Power Density               |
  
   	
 | Auxiliar function | CST version          |
 |-------------------|----------------------|
-|AbsToProbs         |CST_AbsToProbs        |
-|QThreshold         |CST_QThreshold        |
-|Threshold          |CST_Threshold         |
-|MergeRefToExp      |CST_MergeRefToExp     |
-|SelectPeriodOnData |CST_SelectPeriodOnData|
-|SelectPeriodOnDates|                      |
+|[AbsToProbs](R/AbsToProbs.R)         |CST_AbsToProbs        |
+|[QThreshold](R/QThreshold.R)         |CST_QThreshold        |
+|[Threshold](R/Threshold.R)          |CST_Threshold         |
+|[MergeRefToExp](R/MergeRefToExp.R)      |CST_MergeRefToExp     |
+|[SelectPeriodOnData](R/SelectPeriodOnData.R) |CST_SelectPeriodOnData|
+|[SelectPeriodOnDates](R/SelectPeriodOnDates.R)|                      |
 
 Find the current status of each function in [this link](https://docs.google.com/spreadsheets/d/1arqgw-etNPs-XRyMTJ4ekF5YjQxAZBzssxxr2GMXp3c/edit#gid=0).
 
-*Note: the CST version uses 's2dv_cube' objects as inputs and outputs while the former version uses multidimensional arrays with named dimensions as inputs and outputs*
+> **Note I:** the CST version uses 's2dv_cube' objects as inputs and outputs while the former version uses multidimensional arrays with named dimensions as inputs and outputs.
 
-*Note: All functions computing indicators allows to subset a time period if required, although this temporal subsetting can also be done with functions `SelectPeriodOnData` in a separated step.* 
+> **Note II:** All functions computing indicators allows to subset a time period if required, although this temporal subsetting can also be done with functions `SelectPeriodOnData` in a separated step. 
 
-#### Object class 's2dv_cube'
+#### Object class s2dv_cube
 
-This package is designed to be compatible with other R packages such as [CSTools](https://CRAN.R-project.org/package=CSTools) through a common object: the `s2dv_cube` object class, used in functions with the prefix **CST_**. This object can be created from Start ([startR](https://CRAN.R-project.org/package=startR) package) and from Load ([s2dv](https://CRAN.R-project.org/package=s2dv) package) directly.  
+This package is designed to be compatible with other R packages such as [CSTools](https://CRAN.R-project.org/package=CSTools) through a common object: the `s2dv_cube`, used in functions with the prefix **CST**. 
 
-The class `s2dv_cube` is mainly a list of named elements to keep data and metadata in a single object. Basic structure of the object:
+An `s2dv_cube` is an object to store ordered multidimensional array with named dimensions, specific coordinates and stored metadata. As an example, this is how it looks like (see `CSTools::lonlat_temp_st$exp`): 
 
 ```r
-$ data: [data array]
-$ dims: [dimensions vector]
-$ coords: [List of coordinates vectors]
-  $ sdate
-  $ time
-  $ lon
-  [...]
-$ attrs: [List of the attributes]
-  $ Variable:
-    $ varName
-    $ metadata 
-  $ Datasets
-  $ Dates
-  $ source_files
-  $ when
-  $ load_parameters
+'s2dv_cube'
+Data          [ 279.99, 280.34, 279.45, 281.99, 280.92,  ... ] 
+Dimensions    ( dataset = 1, var = 1, member = 15, sdate = 6, ftime = 3, lat = 22, lon = 53 ) 
+Coordinates  
+ * dataset : dat1 
+ * var : tas 
+   member : 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 
+ * sdate : 20001101, 20011101, 20021101, 20031101, 20041101, 20051101 
+   ftime : 1, 2, 3 
+ * lat : 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, ...
+ * lon : 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, ...
+Attributes   
+   Dates  : 2000-11-01 2001-11-01 2002-11-01 2003-11-01 2004-11-01 ... 
+   varName  : tas 
+   metadata :  
+      lat 
+        units : degrees_north 
+        long name : latitude 
+      lon 
+        units : degrees_east 
+        long name : longitude 
+      ftime 
+        units : hours since 2000-11-01 00:00:00 
+      tas 
+        units : K 
+        long name : 2 metre temperature 
+   Datasets  : dat1 
+   when  : 2023-10-02 10:11:06 
+   source_files  : "/ecmwf/system5c3s/monthly_mean/tas_f6h/tas_20001101.nc" ... 
+   load_parameters  : 
+       ( dat1 )  : dataset = dat1, var = tas, sdate = 20001101 ... 
 ```
 
-More information about the `s2dv_cube` object class can be found here: [description of the s2dv_cube object structure document](https://docs.google.com/document/d/1ko37JFl_h6mOjDKM5QSQGikfLBKZq1naL11RkJIwtMM/edit?usp=sharing).
-
-The current `s2dv_cube` object (CSIndicators 1.0.0 and CSTools 5.0.0) differs from the original object used in the previous versions of the packages. If you have **questions** on this change you can follow some of the points below:
-
-- [New s2dv_cube object discussion in CSTools](https://earth.bsc.es/gitlab/external/cstools/-/issues/94)
-- [How to deal with the compatibility break in CSIndicators](https://earth.bsc.es/gitlab/es/csindicators/-/issues/25)
+> **Note:** The current `s2dv_cube` object (CSIndicators > 0.0.2 and CSTools > 4.1.1) differs from the original object used in the previous versions of the packages. More information about the `s2dv_cube` object class can be found here: [description of the s2dv_cube object structure document](https://docs.google.com/document/d/1ko37JFl_h6mOjDKM5QSQGikfLBKZq1naL11RkJIwtMM/edit?usp=sharing).
 
 Contribute
 ----------
@@ -105,7 +120,7 @@ Contribute
 3. Create a new branch from master with a meaningful name
 4. Once the development is finished, open a merge request to merge the branch on master
 
-*Note: Remember to work with multidimensionals arrays with named dimensions when possible and use [multiApply](https://earth.bsc.es/gitlab/ces/multiApply).*
+> **Note:** Remember to work with multidimensionals arrays with named dimensions when possible and use [multiApply](https://earth.bsc.es/gitlab/ces/multiApply).
 
 #### Add a function
 
