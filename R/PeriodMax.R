@@ -83,8 +83,8 @@ CST_PeriodMax <- function(data, start = NULL, end = NULL,
   
   data$data <- total
   data$dims <- dim(total)
-  data$coords[[time_dim]] <- NULL
-
+  data$coords[[time_dim]] <- 1 : length(data$dims[[time_dim]])
+  
   if (!is.null(Dates)) {
     if (!is.null(start) && !is.null(end)) {
       Dates <- SelectPeriodOnDates(dates = Dates, start = start, end = end,
@@ -98,10 +98,10 @@ CST_PeriodMax <- function(data, start = NULL, end = NULL,
       # Create time_bounds
       time_bounds <- NULL
       time_bounds$start <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
-                                                 indices = 1, drop = 'selected')
+                                                 indices = 1, drop = FALSE)
       time_bounds$end <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
                                                indices = dim(Dates)[time_dim], 
-                                               drop = 'selected')
+                                               drop = FALSE)
 
       # Add Dates in attrs
       data$attrs$Dates <- time_bounds$start
@@ -163,6 +163,7 @@ CST_PeriodMax <- function(data, start = NULL, end = NULL,
 #'res <- PeriodMax(data, dates = Dates, start = list(01, 12), end = list(01, 01))
 #'
 #'@import multiApply
+#'@importFrom stats setNames
 #'@export
 PeriodMax <- function(data, dates = NULL, start = NULL, end = NULL,
                       time_dim = 'time', na.rm = FALSE, ncores = NULL) {
@@ -205,9 +206,10 @@ PeriodMax <- function(data, dates = NULL, start = NULL, end = NULL,
       }
     }
   }
-  total <- Apply(list(data), target_dims = time_dim, fun = max,
+  total <- Apply(list(data), target_dims = time_dim, fun = function(...) {max(...)},
                  na.rm = na.rm, ncores = ncores)$output1
+  
+  dim(total) <- c(dim(total), setNames(1, time_dim))
   return(total)
 }
-
 

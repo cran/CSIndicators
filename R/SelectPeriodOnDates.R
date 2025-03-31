@@ -53,7 +53,7 @@ SelectPeriodOnDates <- function(dates, start, end,
   }
   # when 29Feb is included the length of the output changes:
   regular <- Apply(list(res), target_dims = time_dim,
-                   fun = sum, ncores = ncores)$output1
+                   fun = function(...) {sum(...)}, ncores = ncores)$output1
   dims <- dim(dates)
   dims[names(dims) == time_dim] <- max(regular)
   if (any(regular != max(regular))) {

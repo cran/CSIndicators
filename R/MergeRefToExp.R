@@ -184,8 +184,10 @@ CST_MergeRefToExp <- function(data1, data2, start1 = NULL, end1 = NULL,
       names(dim(dates2)) <- time_dim
     }
   }
-  res <- Apply(list(dates1, dates2), target_dims = time_dim,
-               'c', output_dims = time_dim, ncores = ncores)$output1
+  res <- Apply(list(dates1, dates2),
+               target_dims = time_dim,
+               fun = function(x, ...) {c(x, ...)},
+               output_dims = time_dim, ncores = ncores)$output1
 
   if (inherits(dates1, 'Date')) {
     data1$attrs$Dates <- as.Date(res, origin = '1970-01-01')
@@ -421,7 +423,8 @@ MergeRefToExp <- function(data1, data2, dates1 = NULL, dates2 = NULL,
     }
   }
 
-  data1 <- Apply(list(data1, data2), target_dims = time_dim, fun = 'c',
+  data1 <- Apply(list(data1, data2), target_dims = time_dim,
+                 fun = function(x, ...) {c(x, ...)},
                  output_dims = time_dim, ncores = ncores)$output1
 
   if (all(names(dim(data1)) %in% data1dims)) {

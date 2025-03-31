@@ -17,7 +17,7 @@ bibentry(
   author = c(person("Núria", "Pérez-Zanón", email = "nuria.perez@bsc.es"), person("", "et al.")),
   title = "CSIndicators: Get tailored climate indicators for applications in your sector",
   doi = "10.1016/j.cliser.2023.100393",
-  url = "https://www.sciencedirect.com/science/article/pii/S2405880723000547",
+  url = URLencode("https://doi.org/10.1016/j.cliser.2023.100393"),
   journal = "Climate Services",
   publisher = "Elsevier",
   year = "2023"

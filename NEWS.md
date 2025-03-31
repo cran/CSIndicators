@@ -1,3 +1,22 @@
+# CSIndicators 1.1.2 (Release date: 2025-03-27)
+
+### Fixes
+- Avoid using 'builtin' type functions in call to multiApply::Apply()
+- CST_PeriodStandardization: Set na.rm = TRUE when replacing infinite values with maximum/minimum period values
+- CST_PeriodPET(): Add longname and other variable metadata 
+- Not drop singleton time dimensions in 
+ PeriodAccumulation
+ PeriodMean
+ PeriodMax
+ PeriodMin
+ PeriodVariance
+ AccumulationExceedingThreshold
+ TotalSpellTimeExceedingThreshold
+ TotalTimeExceedingThreshold
+
+### Other
+- add CONTRIBUTING.md
+
 # CSIndicators 1.1.1 (Release date: 2024-01-24)  
 
 ### Fixes

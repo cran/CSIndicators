@@ -12,12 +12,12 @@
 #'coordinates and therefore, the result will be filled with NA for the 
 #'specific coordinates. When NAs are not removed, if the length of the data for 
 #'a computational step is smaller than 4, there will not be enough data for 
-#'standarize and the result will be also filled with NAs for that coordinates. 
+#'standardization and the result will be also filled with NAs for those coordinates. 
 #'About the distribution used to fit the data, there are only two possibilities: 
-#''log-logistic' and 'Gamma'. The 'Gamma' method only works when only 
-#'precipitation is provided and other variables are 0 because it is positive 
+#''log-logistic' and 'Gamma'. The 'Gamma' method works only when precipitation 
+#'is the sole variable provided, and all other variables are 0 because it is positive 
 #'defined (SPI indicator). When only 'data' is provided ('data_cor' is NULL) the 
-#'standardization is computed with cross validation. This function is build to 
+#'standardization is computed with cross validation. This function is built to 
 #'be compatible with other tools in that work with 's2dv_cube' object 
 #'class. The input data must be this object class. If you don't work with 
 #''s2dv_cube', see PeriodStandardization. For more information on the SPEI 
@@ -108,6 +108,7 @@ CST_PeriodStandardization <- function(data, data_cor = NULL, time_dim = 'syear',
     }
   }
   res <- PeriodStandardization(data = data$data, data_cor = data_cor$data, 
+                               dates = data$attrs$Dates,
                                time_dim = time_dim, leadtime_dim = leadtime_dim, 
                                memb_dim = memb_dim, 
                                ref_period = ref_period,
@@ -124,7 +125,10 @@ CST_PeriodStandardization <- function(data, data_cor = NULL, time_dim = 'syear',
 
   if (is.null(data_cor)) {
     data$data <- std
-    data$attrs$Variable$varName <- paste0(data$attrs$Variable$varName, ' standardized')
+    data_longname <- data$attrs$Variable$metadata[[data$attrs$Variable$varName]]$longname
+    if (!is.null(data_longname)) {
+      data$attrs$Variable$metadata[[data$attrs$Variable$varName]]$longname <- paste(data_longname, 'standardized')
+    }
     if (return_params) {
       return(list(spei = data, params = params))
     } else {
@@ -132,7 +136,10 @@ CST_PeriodStandardization <- function(data, data_cor = NULL, time_dim = 'syear',
     }
   } else {
     data_cor$data <- std
-    data_cor$attrs$Variable$varName <- paste0(data_cor$attrs$Variable$varName, ' standardized')
+    data_cor_longname <- data_cor$attrs$Variable$metadata[[data_cor$attrs$Variable$varName]]$longname
+    if (!is.null(data_cor_longname)) {
+      data_cor$attrs$Variable$metadata[[data_cor$attrs$Variable$varName]]$longname <- paste(data_cor_longname, 'standardized')
+    }
     data_cor$attrs$Datasets <- c(data_cor$attrs$Datasets, data$attrs$Datasets)
     data_cor$attrs$source_files <- c(data_cor$attrs$source_files, data$attrs$source_files)
     return(data_cor)
@@ -337,7 +344,7 @@ PeriodStandardization <- function(data, data_cor = NULL, dates = NULL,
               "will not be used.")
       ref_period <- NULL
     } else if (!all(unlist(ref_period) %in% years_dates)) {
-      warning("Parameter 'ref_period' contain years outside the dates. ", 
+      warning("Parameter 'ref_period' contains years outside the dates. ", 
               "It will not be used.")
       ref_period <- NULL
     } else {
@@ -610,8 +617,8 @@ PeriodStandardization <- function(data, data_cor = NULL, dates = NULL,
   }
   if (handle_infinity) { 
     # could also use "param_error" ?; we are giving it the min/max value of the grid point
-    spei_mod[is.infinite(spei_mod) & spei_mod < 0] <- min(spei_mod[!is.infinite(spei_mod)])
-    spei_mod[is.infinite(spei_mod) & spei_mod > 0] <- max(spei_mod[!is.infinite(spei_mod)]) 
+    spei_mod[is.infinite(spei_mod) & spei_mod < 0] <- min(spei_mod[!is.infinite(spei_mod)],na.rm = TRUE)
+    spei_mod[is.infinite(spei_mod) & spei_mod > 0] <- max(spei_mod[!is.infinite(spei_mod)],na.rm = TRUE) 
   }
   if (return_params) {
     return(list(spei = spei_mod, params = params_result))

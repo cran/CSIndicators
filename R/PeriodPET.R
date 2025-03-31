@@ -91,8 +91,12 @@ CST_PeriodPET <- function(data, pet_method = 'hargreaves',
   source_files <- lapply(data, function(x) {x$attrs$source_files})
   coords <- data[[1]]$coords
   Dates <- data[[1]]$attrs$Dates
+  
   metadata <- data[[1]]$attrs$Variable$metadata
-  metadata_names <- intersect(names(dim(res)), names(metadata))
+  metadata[["PET"]]$longname <- "Potential evapotranspiration"
+  metadata[["PET"]]$units <- "mm"
+
+  metadata_names <- c(intersect(names(dim(res)), names(metadata)), "PET")
   suppressWarnings(
     res <- s2dv_cube(data = res, coords = coords, 
                      varName = paste0('PET'), 

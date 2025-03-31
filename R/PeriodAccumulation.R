@@ -129,12 +129,12 @@ CST_PeriodAccumulation <- function(data, start = NULL, end = NULL,
     data$attrs$Dates <- Dates 
   }
   if (is.null(rollwidth)) {
-    data$coords[[time_dim]] <- NULL
+    data$coords[[time_dim]] <- 1 : length(data$dims[[time_dim]])
     if (!is.null(dim(Dates))) {
       # Create time_bounds
       time_bounds <- NULL
-      time_bounds$start <- Subset(Dates, time_dim, 1, drop = 'selected')
-      time_bounds$end <- Subset(Dates, time_dim, dim(Dates)[time_dim], drop = 'selected')
+      time_bounds$start <- Subset(Dates, time_dim, 1, drop = FALSE)
+      time_bounds$end <- Subset(Dates, time_dim, dim(Dates)[time_dim], drop = FALSE)
 
       # Add Dates in attrs
       data$attrs$Dates <- time_bounds$start
@@ -222,6 +222,7 @@ CST_PeriodAccumulation <- function(data, start = NULL, end = NULL,
 #'
 #'@import multiApply
 #'@importFrom zoo rollapply
+#'@importFrom stats setNames
 #'@export
 PeriodAccumulation <- function(data, dates = NULL, start = NULL, end = NULL, 
                                time_dim = 'time', rollwidth = NULL, 
@@ -273,7 +274,7 @@ PeriodAccumulation <- function(data, dates = NULL, start = NULL, end = NULL,
 
   if (is.null(rollwidth)) {
     # period accumulation
-    total <- Apply(list(data), target_dims = time_dim, fun = sum,
+    total <- Apply(list(data), target_dims = time_dim, fun = function(...) {sum(...)},
                    na.rm = na.rm, ncores = ncores)$output1
   } else {
     # rolling accumulation
@@ -321,7 +322,7 @@ PeriodAccumulation <- function(data, dates = NULL, start = NULL, end = NULL,
     pos <- match(dimnames, names(dim(total)))
     total <- aperm(total, pos)
   }
-
+  dim(total) <- c(dim(total), setNames(1, time_dim))
   return(total)
 }
 
@@ -337,7 +338,9 @@ PeriodAccumulation <- function(data, dates = NULL, start = NULL, end = NULL,
     }
   }
 
-  data_accum <- rollapply(data = data_vector, width = rollwidth, FUN = sum, na.rm = na.rm)
+  data_accum <- rollapply(data = data_vector, width = rollwidth,
+                          FUN = function(...) {sum(...)},
+                          na.rm = na.rm)
   if (!forwardroll) {
     data_accum <- c(rep(NA, rollwidth-1), data_accum) 
   } else {

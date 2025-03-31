@@ -115,7 +115,7 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
                                             ncores = ncores)
   data$data <- total
   data$dims <- dim(total)
-  data$coords[[time_dim]] <- NULL
+  data$coords[[time_dim]] <- 1 : length(data$dims[[time_dim]])
 
   if (!is.null(Dates)) {
     if (!is.null(start) && !is.null(end)) {
@@ -130,10 +130,10 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
       # Create time_bounds
       time_bounds <- NULL
       time_bounds$start <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
-                                                 indices = 1, drop = 'selected')
+                                                 indices = 1, drop = FALSE)
       time_bounds$end <- ClimProjDiags::Subset(x = Dates, along = time_dim, 
                                                indices = dim(Dates)[time_dim], 
-                                               drop = 'selected')
+                                               drop = FALSE)
 
       # Add Dates in attrs
       data$attrs$Dates <- time_bounds$start
@@ -219,6 +219,7 @@ CST_TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>
 #'                                          end = list(21, 6))
 #' 
 #'@import multiApply
+#'@importFrom stats setNames
 #'@export
 TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>',
                                              dates = NULL, start = NULL, end = NULL, 
@@ -435,6 +436,7 @@ TotalSpellTimeExceedingThreshold <- function(data, threshold, spell, op = '>',
                      ncores = ncores)$output1
     }
   }
+  dim(total) <- c(dim(total), setNames(1, time_dim))
   return(total) 
 }  
 

@@ -105,12 +105,12 @@ parameter 'na.rm', the standardization cannot be carried out for those
 coordinates and therefore, the result will be filled with NA for the 
 specific coordinates. When NAs are not removed, if the length of the data for 
 a computational step is smaller than 4, there will not be enough data for 
-standarize and the result will be also filled with NAs for that coordinates. 
+standardization and the result will be also filled with NAs for those coordinates. 
 About the distribution used to fit the data, there are only two possibilities: 
-'log-logistic' and 'Gamma'. The 'Gamma' method only works when only 
-precipitation is provided and other variables are 0 because it is positive 
+'log-logistic' and 'Gamma'. The 'Gamma' method works only when precipitation 
+is the sole variable provided, and all other variables are 0 because it is positive 
 defined (SPI indicator). When only 'data' is provided ('data_cor' is NULL) the 
-standardization is computed with cross validation. This function is build to 
+standardization is computed with cross validation. This function is built to 
 be compatible with other tools in that work with 's2dv_cube' object 
 class. The input data must be this object class. If you don't work with 
 's2dv_cube', see PeriodStandardization. For more information on the SPEI 
